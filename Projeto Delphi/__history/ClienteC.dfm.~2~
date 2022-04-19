@@ -1,0 +1,34 @@
+object TClienteC: TTClienteC
+  Left = 0
+  Top = 0
+  Caption = 'ClienteC'
+  ClientHeight = 278
+  ClientWidth = 533
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Panel1: TPanel
+    Left = 0
+    Top = 216
+    Width = 533
+    Height = 62
+    Align = alBottom
+    TabOrder = 0
+  end
+  object Panel2: TPanel
+    Left = 0
+    Top = 0
+    Width = 533
+    Height = 216
+    Align = alClient
+    TabOrder = 1
+    ExplicitTop = 216
+    ExplicitHeight = 62
+  end
+end

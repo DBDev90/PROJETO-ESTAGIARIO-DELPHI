@@ -1,0 +1,63 @@
+unit Funcoesdb;
+
+interface
+
+uses SysUtils, Variants;
+
+Function StringTextSql( xTexto:Variant ):String ;
+
+function BooleanTextSql(xValor: Variant): String;
+
+Function DateTextSql( xData:TDateTime; xTipoHora:char = 'N' ):String ;
+
+implementation
+
+uses
+  DMPrincipal;
+
+
+
+
+Function StringTextSql( xTexto:Variant ):String;
+Begin
+  if (xTexto = '') or (xTexto = null) then
+   Result := 'NULL'
+  else
+    Result := QuotedStr(xTexto) ;
+end ;
+
+function BooleanTextSql(xValor: Variant): String;
+begin
+  if xValor = Null then
+     Result := 'NULL'
+  else
+  begin
+    if xValor = True then
+      Result := StringTextSql('1')
+    Else
+      Result := StringTextSql('0');
+  end;
+end;
+
+Function DateTextSql( xData:TDateTime; xTipoHora:char ):String ;
+var DataSQLT: TDateTime;
+var DataSQL: TDateTime;
+Begin
+  if xData = 0 then
+    Result := 'NULL'
+  else
+    if xTipoHora = 'T' then
+    begin
+      case DMPrincipal.TDMPrincipal.Conexao of
+        'S': Result := DataSQLT(xData);
+        'O': Result := 'TO_DATE(' + DataSQLT(xData) + ', ''YYYY/MM/DD HH24:MI:SS'')';
+      end;
+    end
+    else
+      case DMPrincipal.TDMPrincipal.Conexao of
+        'S': Result := DataSQL(xData);
+        'O': Result := 'TO_DATE(' + QuotedStr(FormatDateTime('YYYY/MM/DD', xData)) + ', ''YYYY/MM/DD'') '
+      end;
+End;
+
+end.

@@ -1,0 +1,656 @@
+begin
+Banco.IBTableAUTOR.Last;  //  ultimo registro da tabela
+
+Banco.IBTableAUTOR.Append;  //  inserir novo registro
+
+Banco.IBTableAUTOR.Edit; // modo de  Edição do registro
+
+ultcod := Banco.IBTableAUTORCODIGO_AUTOR.value+1;
+Banco.IBTableAUTORCODIGO_AUTOR.value := ultcod;
+end;
+SALVAR:
+begin
+
+  Banco.IBTableAUTOR.Post;  //  gravar o registro
+
+end;
+
+#########################################################################################
+
+1) Enter valer como Tab:
+
+procedure TForm1.EditKeyPress(Sender: TObject;
+
+  var Key: Char);
+
+begin
+
+  with Sender do
+
+    if Key = #13 then begin
+
+      SelectNext(Sender as tWinControl, True, True);
+
+      Key := #0;
+
+    end;
+
+end;
+
+
+
+Usando o 'Sender', poderá ser utilizado vários componentes.
+
+
+
+2) Mudar Resolução do video:
+
+implementation
+
+
+
+{$R *.RES}
+
+
+
+procedure TForm1.FormCreate(Sender: TObject);
+
+var
+
+  i : Integer;
+
+  DevMode : TDevMode;
+
+begin
+
+  i := 0;
+
+  while EnumDisplaySettings(nil,i,Devmode) do begin
+
+    with Devmode do
+
+      ListBox1.Items.Add(Format('%dx%d %d Colors',[dmPelsWidth,dmPelsHeight,
+
+                         1 shl dmBitsperPel]));
+
+    Inc(i);
+
+  end;
+
+end;
+
+
+
+procedure TForm1.ListBox1Click(Sender: TObject);
+
+begin
+
+  Button1.Enabled := Listbox1.ItemIndex >= 0;
+
+end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+
+var
+
+  DevMode : TDevMode;
+
+begin
+
+  EnumDisplaySettings(nil,Listbox1.ItemIndex,Devmode);
+
+  ChangeDisplaySettings(DevMode,0);
+
+end;
+
+
+
+end.
+
+
+
+3) Mudar o cursor do mouse
+
+Sintaxe: Screen.Cursor := ;
+
+Exemplo : Screen.Cursor := crHourGlass; //crHourGlass representa a ampulheta
+
+
+
+crSQLWait representa a ampulheta de SQL, existem outros tipo de cursores já
+
+pré-definidos no  Delphi,  se você quiser o nome de todos vá na propriedade
+
+Cursor de algum componente.
+
+
+
+4) Como saber se o aplicativo já foi aberto
+
+Insira o código abaixo dentro do arquivo .DPR de sua aplicação
+
+
+
+{$R *.RES}
+
+
+
+begin
+
+  Application.Title := '';
+
+  Application.HelpFile := '';
+
+  if HPrevInst = 0 then begin
+
+     F_Splash := TF_Splash.create(Application);
+
+     F_Splash.Show;
+
+     Application.CreateForm(TF_Menu, F_Menu);
+
+     Application.CreateForm(TF_Error, F_Error);
+
+     Application.CreateForm(TF_Form1, F_From1);
+
+     Application.CreateForm(TF_Form2, F_Form2j);
+
+     Application.Run;
+
+  end else
+
+     messagedlg('O sistema já foi inicializado!',mtinformation,[mbok],0);
+
+end.
+
+
+
+//Segunda alternativa:
+
+//Como executar apenas uma vez a aplicação?
+
+//Código abaixo para Delphi 2/3.
+
+
+
+program Projeto1;
+
+
+
+uses
+
+Forms,
+
+Windows,
+
+Form1 in Unit1 {Form1};
+
+
+
+{$R *.RES}
+
+
+
+var Handle1,
+
+Handle2 : HWND;
+
+
+
+begin
+
+Application.Initialize;
+
+Handle1:= FindWindow(PChar('Form1'),nil);
+
+if Handle1 = 0 then
+
+   begin
+
+        Application.CreateForm(TForm1, Form1);
+
+        Application.Run
+
+   end
+
+else
+
+    begin
+
+         Handle2:= GetWindow(Handle1,GW_OWNER);
+
+         ShowWindow(Handle2,SW_HIDE);
+
+         ShowWindow(Handle2,SW_RESTORE);
+
+         SetForegroundWindow(Handle1)
+
+    end
+
+end.
+
+
+
+//Aviso: Este codigo so funcionara qdo o Delphi nao estiver
+
+//carregado.
+
+
+
+
+
+5) Executando um programa em DOS e fechando sua janela em seguida após a execução:
+
+Deve ser especificado " command.com /c 'nome do programa' " na linha de comando.
+
+Usando a função da API WinExec para executar um programa chamado exemplo.exe,  a
+
+chamada deve ser:
+
+
+
+  //Local
+
+  WinExec('command.com /c exemplo.exe',sw_ShowNormal);  //Visualização normal.
+
+  WinExec('command.com /c exemplo.exe',sw_Hide);        //Sem que seja visualizado pelo usuário.
+
+
+
+6) Transformando String - SQL:
+
+function TForm1.SqlStr(const Str: String): String;
+
+begin
+
+  if Str = '' then
+
+    SqlStr := 'NULL'
+
+  else
+
+    SqlStr := '''' + UpperCase(Str) + '''';
+
+end;
+
+
+
+7)Formatos Internacionais:
+
+
+
+  DecimalSeparator := '.';
+
+  ShortDateFormat := 'mm/dd/yy';
+
+
+
+Isto terá precedência sobre a configuração padrão. Para uma lista completa das variáveis, procure em Currency Formatting Variables na ajuda do Delphi.
+
+
+
+8) Como criar Forms em tempo de execução ?
+
+
+
+Para você economizar memória, pode-se criar os forms de sua aplicação somente no momento da execução. Na criação do Form você define se ele é MODAL ou NÃO MODAL. Para Isso observe os seguintes códigos:
+
+MODAL - Mostra form em modo exclusivo
+
+
+
+procedure TForm1.Button1Click(Sender: TObject);
+
+begin
+
+  Application.CreateForm(TForm2, Form2);  //Carrega form na memória
+
+  Form2.ShowModal;                        //Mostra form em modo exclusivo
+
+  Form2.Free;                             //Libera Memória
+
+end;
+
+
+
+NÃO MODAL - Mostra form em modo não exclusivo
+
+
+
+procedure TForm1.Button1Click(Sender: TObject);
+
+begin
+
+  Application.CreateForm(TForm2, Form2); //Carrega form na memória
+
+  Form2.ShowModal;                       //Mostra form em modo exclusivo
+
+end;
+
+
+
+No evento OnClose do Form2 coloque o seguinte código.
+
+
+
+procedure TForm2.FormClose (Sender: Tobject; var Action : TCloseAction);
+
+begin
+
+  Action:= caFree;
+
+end;
+
+
+
+Alterar no delphi, no menu Options, opção Project. Mudando os forms a serem criados dinamicamente da coluna Auto-Create Forms para Avaliable Forms.
+
+
+
+9) Como criar um Form de Apresentação (Splash) como o do WORD?
+
+****************
+
+program Project1;
+
+
+
+uses
+
+  Forms,
+
+  Unit1 in 'Unit1.pas' {Form1},
+
+  Unit2 in 'Unit2.pas' {Form2};
+
+
+
+{$R *.RES}
+
+
+
+procedure Iniciar;
+
+begin
+
+  Application.CreateForm(TForm1, Form1);
+
+  Application.CreateForm(TForm2, Form2);
+
+  Form2.ShowModal;
+
+end;
+
+
+
+begin
+
+  Iniciar;
+
+  Application.run;
+
+end.
+
+
+
+****************
+
+unit Unit1;
+
+
+
+interface
+
+
+
+uses
+
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+
+  StdCtrls;
+
+
+
+type
+
+  TForm1 = class(TForm)
+
+    Label1: TLabel;
+
+    Button1: TButton;
+
+    procedure Button1Click(Sender: TObject);
+
+
+
+  private
+
+    { Private declarations }
+
+  public
+
+    { Public declarations  }
+
+  end;
+
+
+
+var
+
+  Form1: TForm1;
+
+
+
+implementation
+
+
+
+{$R *.RES}
+
+
+
+procedure TForm1.Button1Click(Sender: TObject);
+
+begin
+
+  Application.Terminate;
+
+end;
+
+
+
+end.
+
+
+
+****************
+
+unit Unit2;
+
+
+
+interface
+
+
+
+uses
+
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+
+  StdCtrls;
+
+
+
+type
+
+  TForm2 = class(TForm)
+
+    Label1: TLabel;
+
+    Edit1: TEdit;
+
+    Button1: TButton;
+
+    procedure Button1Click(Sender: TObject);
+
+
+
+  private
+
+    { Private declarations }
+
+  public
+
+    { Public declarations }
+
+  end;
+
+
+
+var
+
+  Form2: TForm2;
+
+
+
+implementation
+
+
+
+uses Unit1;
+
+
+
+{$R *.RES}
+
+
+
+procedure TForm2.Button1Click(Sender: TObject);
+
+begin
+
+  if Edit1.text = 'Edit1' then begin
+
+    Form2.Hide;
+
+    Form1.ShowModal;
+
+  end else
+
+    Application.Terminate;
+
+end;
+
+
+
+end.
+
+
+
+
+
+//OU NUMA SEGUNDA OPÇÃO:
+
+
+
+//FORMA ORIGINAL DO PROJECT SOURCE:
+
+//begin
+
+  //Application.CreateForm(TForm1, Form1);
+
+  //Application.CreateForm(TAcesso, Acesso);
+
+  //Application.Run;
+
+//end.
+
+
+
+//FORMA ALTERADA DO PROJECT SOURCE:
+
+procedure Iniciar;
+
+begin
+
+  Application.CreateForm(TForm1, Form1);
+
+  Application.CreateForm(TAcesso, Acesso);
+
+  Application.ShowMainForm := False;
+
+end;
+
+
+
+begin
+
+  Iniciar;
+
+  Application.Run;
+
+end.
+
+
+
+
+
+//USO NO FORM DE ACESSO DO SEU PROJETO:
+
+
+
+procedure TAcesso.BtnOKClick(Sender: TObject);
+
+//var
+
+  //Query: TQuery;
+
+  //Status: String;
+
+begin
+
+  //Query := TQuery.Create(nil);
+
+  //Alias utilizado no BDE
+
+  //Query.DatabaseName := 'ComputerLife';
+
+  try
+
+    //Select do status do usuario
+
+    //se pode ou não ter acesso ou
+
+    //o tipo de autorização ou algo parecido...
+
+    //Query.SQL.Clear;
+
+    //Query.SQL.Add(' SELECT STATUS FROM USUARIO ');
+
+    //Query.SQL.Add(' WHERE USUARIO = ' + SqlStr(EditUsuario.Text));
+
+    //Query.SQL.Add(' AND SENHA = ' + SqlStr(EditSenha.Text));
+
+    //Query.Open;
+
+    //if not Query.EOF then
+
+    if EditSenha.Text = 'ELIEL' then  begin
+
+      //Poderá ser utilizado ou não...
+
+      //Status := Query.Fields[0].AsString;
+
+      Form1.WindowState := wsNormal;
+
+      Form1.Visible := True;
+
+      FrmAcesso.Hide;
+
+    end else begin
+
+      ShowMessage( 'Usuário/Senha inválido!!');
+
+      EditUsuario.SetFocus
+
+    end;

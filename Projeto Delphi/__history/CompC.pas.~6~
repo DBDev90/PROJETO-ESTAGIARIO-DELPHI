@@ -1,0 +1,29 @@
+unit CompC;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, ExtCtrls, StdCtrls;
+
+type
+  TCompraC = class(TForm)
+    Panel1: TPanel;
+    Panel2: TPanel;
+    btnCancelar: TButton;
+    btnSalvar: TButton;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+    procedure ChamaTelaC;
+  end;
+
+var
+  CompraC: TCompraC;
+
+implementation
+
+{$R *.dfm}
+
+end.

@@ -1,0 +1,188 @@
+unit ClienteC;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, ExtCtrls, StdCtrls, Mask;
+
+type
+  TTClienteC = class(TForm)
+    Panel1: TPanel;
+    Panel2: TPanel;
+    cbAtivo: TCheckBox;
+    btnSalvar: TButton;
+    btnCancelar: TButton;
+    edNomeClienteC: TEdit;
+    edRgClienteC: TEdit;
+    lbNomeClienteC: TLabel;
+    lbRgClienteC: TLabel;
+    lblAtivo: TLabel;
+    procedure btnSalvarClick(Sender: TObject);
+    procedure btnCancelarClick(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+  private
+    { Private declarations }
+    xCodigo: string;
+    AcaoTela: Char;
+    procedure DesabilitaComponentes;
+    procedure CarregaDados;
+  public
+    { Public declarations }
+    procedure ChamaTela(Codigo: string; pAcaotela: Char);
+  end;
+
+var
+  TClienteC: TTClienteC;
+
+implementation
+
+uses
+  Funcoes, Funcoesdb, DMPrincipal, Produto, Cliente;
+
+{$R *.dfm}
+
+{ TTClienteC }
+
+
+{ TTClienteC }
+
+procedure TTClienteC.btnCancelarClick(Sender: TObject);
+begin
+  TClienteC.Close;
+end;
+
+procedure TTClienteC.btnSalvarClick(Sender: TObject);
+begin
+  if Empty(edNomeClienteC.Text) then
+  begin
+    EnviaMensagem('Informe o nome!', 'Informação', mtInformation, [mbOK]);
+    if edNomeClienteC.CanFocus then
+      edNomeClienteC.SetFocus;
+    Exit;
+  end;
+  if Empty(edRgClienteC.Text) then
+  begin
+    EnviaMensagem('Informe o RG!', 'Informação', mtInformation, [mbOK]);
+    if edRgClienteC.CanFocus then
+      edRgClienteC.SetFocus;
+    Exit;
+  end;
+
+  edRgClienteC.Text := StringReplace(edRgClienteC.Text,',','.',[rfReplaceAll,rfIgnoreCase]);
+
+  with TDMPrincipal.qAux do
+  begin
+    case AcaoTela of
+      'I':
+        begin
+          Close;
+          SQL.Clear;
+          SQL.Add('INSERT INTO CLIENTE(NOME,RG,ATIVO)');
+          SQL.Add('VALUES(' + StringTextSql(edNomeClienteC.Text));
+          SQL.Add(', ' + StringTextSql(edRgClienteC.Text));
+          SQL.Add(',' + BooleanTextSql(cbAtivo.Checked));
+          SQL.Add(')');
+          ExecSQL;
+        end;
+      'E':
+        begin
+          Close;
+          SQL.Clear;
+          SQL.Add('UPDATE CLIENTE');
+          SQL.Add('SET');
+          SQL.Add('NOME = ' + StringTextSql(edNomeClienteC.Text));
+          SQL.Add(',RG = ' + StringTextSql(edRgClienteC.Text));
+
+          if cbAtivo.Checked then
+            SQL.Add(',ATIVO = 1')
+          else
+            sql.Add(',ATIVO = 0');
+
+          SQL.Add('WHERE COD_CLIENTE = ' + xCodigo);
+          ExecSQL;
+
+          EnviaMensagem('As informações do cliente foram alteradas!', 'Informação', mtInformation, [mbOK]);
+        end;
+    end;
+  end;
+  Close;
+end;
+
+procedure TTClienteC.CarregaDados;
+begin
+  with TDMPrincipal.qAux do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT NOME,RG,ATIVO');
+    SQL.Add('FROM CLIENTE');
+    SQL.Add('WHERE COD_CLIENTE = ' + xCodigo);
+    Open;
+    if not IsEmpty then
+    begin
+      edNomeClienteC.Text := FieldByName('NOME').AsString;
+      edRgClienteC.Text := FieldByName('RG').AsString;
+      cbAtivo.Checked := FieldByName('ATIVO').AsBoolean;
+    end;
+//    if (cbAtivo.Visible) and (cbAtivo.Enabled) then
+//    begin
+//      if lblAtivo.Caption = 'True' then
+//        cbAtivo.Checked := True;
+//    end;
+    case AcaoTela of
+      'C':
+        begin
+          DesabilitaComponentes;
+        end;
+    end;
+  end;
+end;
+
+procedure TTClienteC.ChamaTela(Codigo: string; pAcaotela: Char);
+begin
+  TClienteC := TTClienteC.Create(Application);
+  with TClienteC do
+  begin
+    xCodigo := Codigo;
+    AcaoTela := pAcaotela;
+
+    if pAcaotela <> 'I' then
+      CarregaDados
+    else
+    begin
+      cbAtivo.Checked := True;
+      cbAtivo.Enabled := False;
+    end;
+
+    ShowModal;
+  end;
+  FreeAndNil(TClienteC);
+end;
+
+procedure TTClienteC.DesabilitaComponentes;
+begin
+  edNomeClienteC.ReadOnly := True;
+  edRgClienteC.ReadOnly := True;
+  cbAtivo.Enabled := False;
+  btnSalvar.Visible := False;
+end;
+
+procedure TTClienteC.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  case Key of
+    VK_ESCAPE:
+      begin
+        if (btnCancelar.Visible) and (btnCancelar.Enabled) then
+          btnCancelar.Click;
+      end;
+    VK_F5:
+      begin
+        if (btnSalvar.Visible) and (btnSalvar.Enabled) then
+          btnSalvar.Click;
+      end;
+  end;
+end;
+
+end.
+

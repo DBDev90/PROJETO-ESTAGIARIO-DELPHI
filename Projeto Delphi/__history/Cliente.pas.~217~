@@ -1,0 +1,545 @@
+unit Cliente;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, Grids, DBGrids, ExtCtrls, DBCtrls, StdCtrls, DB, ADODB;
+
+type
+  TTCliente = class(TForm)
+    Panel1: TPanel;
+    Panel2: TPanel;
+    Panel3: TPanel;
+    DBGrid1: TDBGrid;
+    Label1: TLabel;
+    lblNumRegistro: TLabel;
+    rgFiltroCliente: TRadioGroup;
+    lblPesquisa: TLabel;
+    edPesquisaCliente: TEdit;
+    btnLimpar: TButton;
+    btnFechar: TButton;
+    btnExcluir: TButton;
+    btnEditar: TButton;
+    btnConsultar: TButton;
+    btnInserir: TButton;
+    btnTransferir: TButton;
+    DBNavigator1: TDBNavigator;
+    qCliente: TADOQuery;
+    dsCliente: TDataSource;
+    procedure btnConsultarClick(Sender: TObject);
+    procedure btnInserirClick(Sender: TObject);
+    procedure btnEditarClick(Sender: TObject);
+    procedure btnLimparClick(Sender: TObject);
+    procedure DBGrid1TitleClick(Column: TColumn);
+    procedure edPesquisaClienteKeyPress(Sender: TObject; var Key: Char);
+    procedure btnFecharClick(Sender: TObject);
+    procedure btnExcluirClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure rgFiltroClienteClick(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+  private
+    { Private declarations }
+    ColunaPesquisa: string;
+    CanClose: Boolean;
+  public
+    { Public declarations }
+    procedure ChamaTela;
+
+    {procedure FiltroCliAtv;
+    procedure FiltroCliIna;
+    procedure FiltroCliTodos;
+
+    procedure ContaRegT;
+    procedure ContaRegIna;
+    procedure ContaRegAtv;}
+  end;
+
+var
+  TCliente: TTCliente;
+
+implementation
+
+uses
+  ClienteC, Funcoes, Funcoesdb, DMPrincipal;
+
+{$R *.dfm}
+
+{ TTCliente }
+
+procedure TTCliente.btnConsultarClick(Sender: TObject);
+begin
+  if qCliente.IsEmpty then
+  begin
+    EnviaMensagem('É preciso selecionar um cliente para Consultar', 'Informação', mtConfirmation, [mbOK]);
+    if edPesquisaCliente.CanFocus then
+      edPesquisaCliente.SetFocus;
+    Exit;
+  end
+  else
+  begin
+    TClienteC.ChamaTela(qCliente.FieldByName('COD_CLIENTE').AsString, 'C');
+  end;
+end;
+
+procedure TTCliente.btnEditarClick(Sender: TObject);
+
+  function Filtro: string;
+  begin
+    if TCliente.Tag = 0 then
+    begin
+      TCliente.Tag := 1;
+      Result := ' WHERE ';
+    end
+    else
+      Result := ' AND ';
+  end;
+
+begin
+  if qCliente.IsEmpty then
+  begin
+    EnviaMensagem('É preciso selecionar um cliente para Editar', '', mtInformation, [mbOK]);
+    if edPesquisaCliente.CanFocus then
+      edPesquisaCliente.SetFocus;
+    Exit;
+  end
+  else
+  begin
+    TClienteC.ChamaTela(qCliente.FieldByName('COD_CLIENTE').AsString, 'E');
+
+    if CanClose = True then
+    begin
+      with TDMPrincipal.qAux do
+      begin
+        Close;
+        sql.Clear;
+        SQL.Add('DELETE CLIENTE');
+        SQL.Add('WHERE COD_CLIENTE = ' + qCliente.FieldByName('COD_CLIENTE').AsString);
+        ExecSQL;
+
+        EnviaMensagem('O cliente foi excluído!', 'Informação', mtInformation, [mbOK]);
+      end;
+    end;
+
+    with qCliente do
+    begin
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT COD_CLIENTE,NOME,RG,ATIVO');
+      SQL.Add('FROM CLIENTE');
+      if edPesquisaCliente.Text <> '*' then
+      begin
+        if ColunaPesquisa = 'COD_CLIENTE' then
+          SQL.Add(Filtro + ' COD_CLIENTE = ' + StringTextSql(edPesquisaCliente.Text));
+
+        if ColunaPesquisa = 'NOME' then
+          SQL.Add(Filtro + ' NOME LIKE ''%' + edPesquisaCliente.Text + '%''');
+
+        if ColunaPesquisa = 'RG' then
+          SQL.Add(Filtro + ' RG LIKE ''%' + edPesquisaCliente.Text + '%''');
+      end;
+      case rgFiltroCliente.ItemIndex of
+        0:
+          SQL.Add(Filtro + ' ATIVO = 1');
+        1:
+          SQL.Add(Filtro + ' ATIVO = 0');
+      end;
+      Open;
+      lblNumRegistro.Caption := IntToStr(qCliente.RecordCount);
+    end;
+  end;
+end;
+
+procedure TTCliente.btnExcluirClick(Sender: TObject);
+
+  function Filtro: string;
+  begin
+    if TCliente.Tag = 0 then
+    begin
+      TCliente.Tag := 1;
+      Result := ' WHERE ';
+    end
+    else
+      Result := ' AND ';
+  end;
+
+begin
+  CanClose := False;
+
+  if qCliente.IsEmpty then
+  begin
+    EnviaMensagem('É preciso selecionar um cliente para Excluir', 'Informação', mtConfirmation, [mbOK]);
+    if edPesquisaCliente.CanFocus then
+      edPesquisaCliente.SetFocus;
+    Exit;
+  end
+  else
+  begin
+    if (MessageBox(Handle, 'Você tem certeza dessa ação?', 'Atenção', MB_ICONQUESTION + MB_YESNO)) = IDYES then
+      CanClose := True
+    else
+      Exit;
+    if CanClose = True then
+    begin
+      with TDMPrincipal.qAux do
+      begin
+        Close;
+        sql.Clear;
+        SQL.Add('DELETE CLIENTE');
+        SQL.Add('WHERE COD_CLIENTE = ' + qCliente.FieldByName('COD_CLIENTE').AsString);
+        ExecSQL;
+
+        EnviaMensagem('O cliente foi excluído!', 'Informação', mtInformation, [mbOK]);
+      end;
+    end;
+
+    with qCliente do
+    begin
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT COD_CLIENTE,NOME,RG,ATIVO');
+      SQL.Add('FROM CLIENTE');
+      if edPesquisaCliente.Text <> '*' then
+      begin
+        if ColunaPesquisa = 'COD_CLIENTE' then
+          SQL.Add(Filtro + ' COD_CLIENTE = ' + StringTextSql(edPesquisaCliente.Text));
+
+        if ColunaPesquisa = 'NOME' then
+          SQL.Add(Filtro + ' NOME LIKE ''%' + edPesquisaCliente.Text + '%''');
+
+        if ColunaPesquisa = 'RG' then
+          SQL.Add(Filtro + ' RG LIKE ''%' + edPesquisaCliente.Text + '%''');
+      end;
+      case rgFiltroCliente.ItemIndex of
+        0:
+          SQL.Add(Filtro + ' ATIVO = 1');
+        1:
+          SQL.Add(Filtro + ' ATIVO = 0');
+      end;
+      Open;
+      lblNumRegistro.Caption := IntToStr(qCliente.RecordCount);
+    end;
+  end;
+end;
+
+procedure TTCliente.btnFecharClick(Sender: TObject);
+begin
+  TCliente.Close;
+end;
+
+procedure TTCliente.btnInserirClick(Sender: TObject);
+
+  function Filtro: string;
+  begin
+    if TCliente.Tag = 0 then
+    begin
+      TCliente.Tag := 1;
+      Result := ' WHERE ';
+    end
+    else
+      Result := ' AND ';
+  end;
+
+begin
+  TClienteC.ChamaTela('', 'I');
+
+  with qCliente do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT COD_CLIENTE,NOME,RG,ATIVO');
+    SQL.Add('FROM CLIENTE');
+    if edPesquisaCliente.Text <> '*' then
+    begin
+      if ColunaPesquisa = 'COD_CLIENTE' then
+        SQL.Add(Filtro + ' COD_CLIENTE = ' + StringTextSql(edPesquisaCliente.Text));
+
+      if ColunaPesquisa = 'NOME' then
+        SQL.Add(Filtro + ' NOME LIKE ''%' + edPesquisaCliente.Text + '%''');
+
+      if ColunaPesquisa = 'RG' then
+        SQL.Add(Filtro + ' RG LIKE ''%' + edPesquisaCliente.Text + '%''');
+    end;
+    case rgFiltroCliente.ItemIndex of
+      0:
+        SQL.Add(Filtro + ' ATIVO = 1');
+      1:
+        SQL.Add(Filtro + ' ATIVO = 0');
+    end;
+    Open;
+    lblNumRegistro.Caption := IntToStr(qCliente.RecordCount);
+  end;
+end;
+
+procedure TTCliente.btnLimparClick(Sender: TObject);
+begin
+  qCliente.Close;
+  edPesquisaCliente.Clear;
+  lblNumRegistro.Caption := '0';
+  if edPesquisaCliente.CanFocus then
+    edPesquisaCliente.SetFocus;
+end;
+
+procedure TTCliente.ChamaTela;
+begin
+  TCliente := TTCliente.Create(Application);
+  with TCliente do
+  begin
+    ShowModal;
+  end;
+  FreeAndNil(TCliente);
+end;
+
+{procedure TTCliente.ContaRegAtv;
+begin
+  with TDMPrincipal.qAux do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT COUNT(*) AS QTD');
+    SQL.Add('FROM CLIENTE');
+    SQL.Add('WHERE ATIVO = 1');
+    SQL.Add('GROUP BY ATIVO');
+    Open;
+
+    lblNumRegistro.Caption := TDMPrincipal.qAux.FieldByName('QTD').AsString;
+  end;
+end;
+
+procedure TTCliente.ContaRegIna;
+begin
+  with TDMPrincipal.qAux do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT COUNT(*) AS QTD');
+    SQL.Add('FROM CLIENTE');
+    SQL.Add('WHERE ATIVO = 0');
+    SQL.Add('GROUP BY ATIVO');
+    Open;
+
+    lblNumRegistro.Caption := TDMPrincipal.qAux.FieldByName('QTD').AsString;
+  end;
+end;
+
+procedure TTCliente.ContaRegT;
+begin
+  with TDMPrincipal.qAux do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT COUNT(*) AS QTD');
+    SQL.Add('FROM CLIENTE');
+    Open;
+
+    lblNumRegistro.Caption := TDMPrincipal.qAux.FieldByName('QTD').AsString;
+  end;
+end;}
+
+procedure TTCliente.DBGrid1TitleClick(Column: TColumn);
+var
+  I: Integer;
+begin
+  ColunaPesquisa := Column.FieldName;
+  lblPesquisa.Caption := 'Digite um ' + Column.Title.Caption + ' ou * para todos e Tecle Enter';
+  btnLimpar.Click;
+
+  for I := 0 to DBGrid1.Columns.Count - 1 do
+  begin
+    if DBGrid1.Columns[I].FieldName = ColunaPesquisa then
+      DBGrid1.Columns[I].Title.Font.Color := clRed
+    else
+      DBGrid1.Columns[I].Title.Font.Color := clBlack;
+  end;
+
+end;
+
+procedure TTCliente.edPesquisaClienteKeyPress(Sender: TObject; var Key: Char);
+
+  function Filtro: string;
+  begin
+    if TCliente.Tag = 0 then
+    begin
+      TCliente.Tag := 1;
+      Result := ' WHERE ';
+    end
+    else
+      Result := ' AND ';
+  end;
+
+begin
+  TCliente.Tag := 0;
+  if (Key = #13) and not Empty(edPesquisaCliente.Text) then
+  begin
+    with qCliente do
+    begin
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT COD_CLIENTE,NOME,RG,ATIVO');
+      SQL.Add('FROM CLIENTE');
+      if edPesquisaCliente.Text <> '*' then
+      begin
+        if ColunaPesquisa = 'COD_CLIENTE' then
+          SQL.Add(Filtro + ' COD_CLIENTE = ' + StringTextSql(edPesquisaCliente.Text));
+
+        if ColunaPesquisa = 'NOME' then
+          SQL.Add(Filtro + ' NOME LIKE ''%' + edPesquisaCliente.Text + '%''');
+
+        if ColunaPesquisa = 'RG' then
+          SQL.Add(Filtro + ' RG LIKE ''%' + edPesquisaCliente.Text + '%''');
+      end;
+      case rgFiltroCliente.ItemIndex of
+        0:
+          SQL.Add(Filtro + ' ATIVO = 1');
+        1:
+          SQL.Add(Filtro + ' ATIVO = 0');
+      end;
+      Open;
+      lblNumRegistro.Caption := IntToStr(qCliente.RecordCount);
+    end;
+//    case rgFiltroCliente.ItemIndex of
+//      2:
+//      begin
+//        FiltroCliTodos;
+//        ContaRegT;
+//      end;
+//      1:
+//      begin
+//        FiltroCliIna;
+//        ContaRegIna;
+//      end;
+//      0:
+//      begin
+//        FiltroCliAtv;
+//        ContaRegAtv;
+//      end;
+//    end;
+  end;
+end;
+
+{procedure TTCliente.FiltroCliAtv;
+begin
+  with qCliente do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT COD_CLIENTE,NOME,RG,ATIVO');
+    SQL.Add('FROM CLIENTE');
+    SQL.Add('WHERE ATIVO = 1');
+    if edPesquisaCliente.Text <> '*' then
+    begin
+      if ColunaPesquisa = 'COD_CLIENTE' then
+        SQL.Add(' AND COD_CLIENTE = ' + StringTextSql(edPesquisaCliente.Text));
+
+      if ColunaPesquisa = 'NOME' then
+        SQL.Add(' AND NOME LIKE ''%' + edPesquisaCliente.Text + '%''');
+
+      if ColunaPesquisa = 'RG' then
+        SQL.Add(' AND RG LIKE ''%' + edPesquisaCliente.Text + '%''');
+
+    end;
+    Open;
+  end;
+end;
+
+procedure TTCliente.FiltroCliIna;
+begin
+  with qCliente do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT COD_CLIENTE,NOME,RG,ATIVO');
+    SQL.Add('FROM CLIENTE');
+    SQL.Add('WHERE ATIVO = 0');
+    if edPesquisaCliente.Text <> '*' then
+    begin
+      if ColunaPesquisa = 'COD_CLIENTE' then
+        SQL.Add(' AND COD_CLIENTE = ' + StringTextSql(edPesquisaCliente.Text));
+
+      if ColunaPesquisa = 'NOME' then
+        SQL.Add(' AND NOME LIKE ''%' + edPesquisaCliente.Text + '%''');
+
+      if ColunaPesquisa = 'RG' then
+        SQL.Add(' AND RG LIKE ''%' + edPesquisaCliente.Text + '%''');
+
+    end;
+    Open;
+  end;
+end;
+
+procedure TTCliente.FiltroCliTodos;
+begin
+  with qCliente do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT COD_CLIENTE,NOME,RG,ATIVO');
+    SQL.Add('FROM CLIENTE');
+    if edPesquisaCliente.Text <> '*' then
+    begin
+      if ColunaPesquisa = 'COD_CLIENTE' then
+        SQL.Add('WHERE COD_CLIENTE = ' + StringTextSql(edPesquisaCliente.Text));
+      if ColunaPesquisa = 'NOME' then
+        SQL.Add('WHERE NOME LIKE ''%' + edPesquisaCliente.Text + '%''');
+      if ColunaPesquisa = 'RG' then
+        SQL.Add('WHERE RG LIKE ''%' + edPesquisaCliente.Text + '%''');
+    end;
+    Open;
+  end;
+end;}
+
+procedure TTCliente.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  case Key of
+    VK_ESCAPE:
+      begin
+        if (btnFechar.Visible) and (btnFechar.Enabled) then
+          btnFechar.Click;
+      end;
+    VK_F2:
+      begin
+        if (btnInserir.Visible) and (btnInserir.Enabled) then
+          btnInserir.Click;
+      end;
+    VK_F3:
+      begin
+        if (btnConsultar.Visible) and (btnConsultar.Enabled) then
+          btnConsultar.Click;
+      end;
+    VK_F4:
+      begin
+        if (btnEditar.Visible) and (btnEditar.Enabled) then
+          btnEditar.Click;
+      end;
+    VK_F8:
+      begin
+        if (btnExcluir.Visible) and (btnExcluir.Enabled) then
+          btnExcluir.Click;
+      end;
+    VK_F6:
+      begin
+        if (btnLimpar.Visible) and (btnLimpar.Enabled) then
+          btnLimpar.Click;
+      end;
+  end;
+end;
+
+procedure TTCliente.FormShow(Sender: TObject);
+begin
+  ColunaPesquisa := 'NOME';
+  if edPesquisaCliente.CanFocus then
+    edPesquisaCliente.SetFocus;
+
+end;
+
+procedure TTCliente.rgFiltroClienteClick(Sender: TObject);
+begin
+  qCliente.Close;
+  edPesquisaCliente.Clear;
+  lblNumRegistro.Caption := '0';
+  if edPesquisaCliente.CanFocus then
+    edPesquisaCliente.SetFocus;
+end;
+
+end.
+

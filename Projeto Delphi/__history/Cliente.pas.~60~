@@ -1,0 +1,152 @@
+unit Cliente;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, Grids, DBGrids, ExtCtrls, DBCtrls, StdCtrls, DB, ADODB;
+
+type
+  TTCliente = class(TForm)
+    Panel1: TPanel;
+    Panel2: TPanel;
+    Panel3: TPanel;
+    DBGrid1: TDBGrid;
+    Label1: TLabel;
+    lbNumRegistro: TLabel;
+    rgFiltroCliente: TRadioGroup;
+    lblPesquisa: TLabel;
+    edPesquisaCliente: TEdit;
+    btnLimpar: TButton;
+    btnFechar: TButton;
+    btnExcluir: TButton;
+    btnEditar: TButton;
+    btnConsultar: TButton;
+    btnInserir: TButton;
+    btnTransferir: TButton;
+    DBNavigator1: TDBNavigator;
+    qCliente: TADOQuery;
+    dsCliente: TDataSource;
+    procedure btnConsultarClick(Sender: TObject);
+    procedure btnInserirClick(Sender: TObject);
+    procedure btnEditarClick(Sender: TObject);
+    procedure btnLimparClick(Sender: TObject);
+    procedure DBGrid1TitleClick(Column: TColumn);
+    procedure edPesquisaClienteKeyPress(Sender: TObject; var Key: Char);
+    procedure btnFecharClick(Sender: TObject);
+    procedure btnExcluirClick(Sender: TObject);
+  private
+    { Private declarations }
+    ColunaPesquisa: string;
+    acaoTela: string;
+  public
+    { Public declarations }
+    procedure ChamaTela;
+  end;
+
+var
+  TCliente: TTCliente;
+
+implementation
+
+uses
+  ClienteC, Funcoes, Funcoesdb, DMPrincipal;
+
+{$R *.dfm}
+
+{ TTCliente }
+
+procedure TTCliente.btnConsultarClick(Sender: TObject);
+begin
+  TClienteC.ChamaTela(qCliente.FieldByName('COD_CLIENTE').AsString,'C');
+end;
+
+procedure TTCliente.btnEditarClick(Sender: TObject);
+begin
+  TClienteC.ChamaTela(qCliente.FieldByName('COD_CLIENTE').AsString,'E');
+end;
+
+procedure TTCliente.btnExcluirClick(Sender: TObject);
+begin
+  with qCliente do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('DELETE CLIENTE');
+    SQL.Add('WHERE COD_CLIENTE = ' + qCliente.FieldByName('COD_CLIENTE').AsString);
+    ExecSQL;
+  end;
+end;
+
+procedure TTCliente.btnFecharClick(Sender: TObject);
+begin
+  TCliente.Close;
+end;
+
+procedure TTCliente.btnInserirClick(Sender: TObject);
+begin
+  TClienteC.ChamaTela('','I');
+end;
+
+procedure TTCliente.btnLimparClick(Sender: TObject);
+begin
+   TDMPrincipal.qCliente.Close;
+   edPesquisaCliente.Clear;
+   if edPesquisaCliente.CanFocus then
+      edPesquisaCliente.SetFocus;
+end;
+
+procedure TTCliente.ChamaTela;
+begin
+  TCliente := TTCliente.Create(Application);
+  with TCliente do
+  begin
+    ShowModal;
+  end;
+  FreeAndNil(TCliente);
+end;
+
+procedure TTCliente.DBGrid1TitleClick(Column: TColumn);
+var
+  I : Integer;
+begin
+  ColunaPesquisa := Column.FieldName;
+  lblPesquisa.Caption := 'Digite um ' + Column.Title.Caption + ' ou * para todos e Tecle Enter';
+  btnLimpar.Click;
+
+  for I := 0 to DBGrid1.Columns.Count - 1 do
+  begin
+    if DBGrid1.Columns[I].FieldName = ColunaPesquisa then
+      DBGrid1.Columns[I].Title.Font.Color := clRed
+    else
+      DBGrid1.Columns[I].Title.Font.Color := clBlack;
+
+  end;
+
+end;
+
+procedure TTCliente.edPesquisaClienteKeyPress(Sender: TObject; var Key: Char);
+begin
+  if (Key = #13) and not Empty(edPesquisaCliente.Text) then
+  begin
+    with qCliente do
+    begin
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT COD_CLIENTE,NOME,RG,ATIVO');
+      SQL.Add('FROM CLIENTE');
+      if edPesquisaCliente.Text <> '*' then
+      begin
+        if ColunaPesquisa = 'COD_CLIENTE' then
+          SQL.Add('WHERE COD_CLIENTE = ' + StringTextSql(edPesquisaCliente.Text));
+        if ColunaPesquisa = 'NOME' then
+          SQL.Add('WHERE NOME LIKE ''%' + edPesquisaCliente.Text + '%''');
+        if ColunaPesquisa = 'RG' then
+          SQL.Add('WHERE RG LIKE ''%' + edPesquisaCliente.Text + '%''');
+      end;
+      Open;
+    end;
+  end;
+end;
+
+end.

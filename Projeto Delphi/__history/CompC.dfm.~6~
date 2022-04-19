@@ -1,0 +1,68 @@
+object CompraC: TCompraC
+  Left = 0
+  Top = 0
+  BorderIcons = []
+  BorderStyle = bsSingle
+  Caption = 'CompraC'
+  ClientHeight = 498
+  ClientWidth = 746
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Panel1: TPanel
+    Left = 0
+    Top = 426
+    Width = 746
+    Height = 72
+    Align = alBottom
+    TabOrder = 0
+    ExplicitTop = 416
+    ExplicitWidth = 736
+    object btnCancelar: TButton
+      Left = 591
+      Top = 24
+      Width = 129
+      Height = 41
+      Caption = 'Cancelar [ESC]'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 1
+    end
+    object btnSalvar: TButton
+      Left = 456
+      Top = 24
+      Width = 129
+      Height = 41
+      Caption = 'Salvar [F5]'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 0
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Top = 0
+    Width = 746
+    Height = 426
+    Align = alClient
+    TabOrder = 1
+    ExplicitLeft = 288
+    ExplicitTop = 240
+    ExplicitWidth = 185
+    ExplicitHeight = 41
+  end
+end

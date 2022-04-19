@@ -1,0 +1,24 @@
+unit CompC;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs;
+
+type
+  TCompraC = class(TForm)
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  CompraC: TCompraC;
+
+implementation
+
+{$R *.dfm}
+
+end.

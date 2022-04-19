@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2022/03/17 14:17:09.282.pas,C:\Users\FOCUS\Documents\RAD Studio\Projects\Unit1.pas=C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\MenuPrincipal.pas</Transaction>
+    <Transaction>2022/03/17 14:17:09.282.dfm,C:\Users\FOCUS\Documents\RAD Studio\Projects\Unit1.dfm=C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\MenuPrincipal.dfm</Transaction>
+    <Transaction>2022/03/17 14:17:21.033.dproj,C:\Users\FOCUS\Documents\RAD Studio\Projects\Project1.dproj=C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\ProjetoEstagio.dproj</Transaction>
+    <Transaction>2022/03/17 14:19:12.063.pas,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Unit1.pas=C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\DMPrincipal.pas</Transaction>
+    <Transaction>2022/03/17 14:19:12.063.dfm,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Unit1.dfm=C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\DMPrincipal.dfm</Transaction>
+    <Transaction>2022/03/17 14:22:24.699.pas,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Unit1.pas=C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Cliente.pas</Transaction>
+    <Transaction>2022/03/17 14:22:24.699.dfm,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Unit1.dfm=C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Cliente.dfm</Transaction>
+    <Transaction>2022/03/17 14:36:09.390.pas,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Unit1.pas=C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\ClienteC.pas</Transaction>
+    <Transaction>2022/03/17 14:36:09.390.dfm,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Unit1.dfm=C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\ClienteC.dfm</Transaction>
+    <Transaction>2022/03/17 14:48:09.126.pas,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Unit1.pas=C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Produto.pas</Transaction>
+    <Transaction>2022/03/17 14:48:09.126.dfm,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Unit1.dfm=C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Produto.dfm</Transaction>
+    <Transaction>2022/03/17 14:49:08.249.pas,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Unit1.pas=C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\ProdutoC.pas</Transaction>
+    <Transaction>2022/03/17 14:49:08.249.dfm,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Unit1.dfm=C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\ProdutoC.dfm</Transaction>
+    <Transaction>2022/03/17 17:48:50.463.pas,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Funcoesdb.pas=</Transaction>
+    <Transaction>2022/03/18 13:48:33.104.pas,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Funcoesdb.pas=</Transaction>
+    <Transaction>2022/03/18 15:58:40.860.pas,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Funcoesdb.pas=</Transaction>
+    <Transaction>2022/03/18 15:58:44.387.pas,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Funcoes.pas=</Transaction>
+    <Transaction>2022/03/28 18:05:18.084.pas,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Unit1.pas=C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Compra.pas</Transaction>
+    <Transaction>2022/03/28 18:05:18.084.dfm,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Unit1.dfm=C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Compra.dfm</Transaction>
+    <Transaction>2022/03/29 14:54:26.686.pas,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Unit1.pas=C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\CompC.pas</Transaction>
+    <Transaction>2022/03/29 14:54:26.686.dfm,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Unit1.dfm=C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\CompC.dfm</Transaction>
+    <Transaction>2022/03/29 15:53:13.265.pas,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\CompC.pas=</Transaction>
+    <Transaction>2022/03/29 15:53:13.265.dfm,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\CompC.dfm=</Transaction>
+    <Transaction>2022/03/29 15:54:07.716.pas,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Unit1.pas=C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\CompraC.pas</Transaction>
+    <Transaction>2022/03/29 15:54:07.716.dfm,C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\Unit1.dfm=C:\Users\FOCUS\Desktop\Douglas\Projeto Delphi\CompraC.dfm</Transaction>
+  </Transactions>
+</BorlandProject>

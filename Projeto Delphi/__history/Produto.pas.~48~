@@ -1,0 +1,147 @@
+unit Produto;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, Grids, DBGrids, StdCtrls, ExtCtrls, DBCtrls, DB, ADODB;
+
+type
+  TTProduto = class(TForm)
+    Panel1: TPanel;
+    Label1: TLabel;
+    lbNumRegistro: TLabel;
+    rgFiltroCliente: TRadioGroup;
+    Panel2: TPanel;
+    Panel3: TPanel;
+    lblPesquisa: TLabel;
+    edPesquisaProduto: TEdit;
+    btnLimpar: TButton;
+    DBGridP: TDBGrid;
+    btnTransferir: TButton;
+    btnInserir: TButton;
+    btnConsultar: TButton;
+    btnEditar: TButton;
+    btnExcluir: TButton;
+    btnFechar: TButton;
+    DBNavigator1: TDBNavigator;
+    qProduto: TADOQuery;
+    dsProduto: TDataSource;
+    procedure btnInserirClick(Sender: TObject);
+    procedure btnConsultarClick(Sender: TObject);
+    procedure btnEditarClick(Sender: TObject);
+    procedure btnFecharClick(Sender: TObject);
+    procedure btnLimparClick(Sender: TObject);
+    procedure DBGridPTitleClick(Column: TColumn);
+    procedure edPesquisaProdutoKeyPress(Sender: TObject; var Key: Char);
+  private
+    { Private declarations }
+    ColunaPesquisa : string;
+  public
+    { Public declarations }
+    procedure ChamaTelaP;
+  end;
+
+var
+  TProduto: TTProduto;
+
+implementation
+
+uses
+  ProdutoC, DMPrincipal, Funcoes, Funcoesdb;
+
+{$R *.dfm}
+
+{ TTProduto }
+
+
+
+{ TTProduto }
+
+procedure TTProduto.btnConsultarClick(Sender: TObject);
+begin
+  TProdutoC.ChamaTelaP(qProduto.FieldByName('COD_PRODUTO').AsString,'C');
+end;
+
+procedure TTProduto.btnEditarClick(Sender: TObject);
+begin
+  TProdutoC.ChamaTelaP(qProduto.FieldByName('COD_PRODUTO').AsString,'E');
+end;
+
+procedure TTProduto.btnFecharClick(Sender: TObject);
+begin
+  TProduto.Close;
+end;
+
+procedure TTProduto.btnInserirClick(Sender: TObject);
+begin
+  TProdutoC.ChamaTelaP(' ','I');
+end;
+
+procedure TTProduto.btnLimparClick(Sender: TObject);
+begin
+  qProduto.Clone;
+  edPesquisaProduto.Clear;
+  if edPesquisaProduto.CanFocus then
+    edPesquisaProduto.SetFocus;
+end;
+
+procedure TTProduto.ChamaTelaP;
+begin
+  TProduto := TTProduto.Create(Application);
+  with TProduto do
+  begin
+    ShowModal;
+  end;
+  FreeAndNil(TProduto);
+end;
+
+
+
+procedure TTProduto.DBGridPTitleClick(Column: TColumn);
+var
+  I: Integer;
+begin
+   ColunaPesquisa := Column.FieldName;
+   lblPesquisa.Caption := 'Digite um ' + Column.Title.Caption + ' ou * para todos e Tecle Enter';
+   btnLimpar.Click;
+
+   for I := 0 to DBGridP.Columns.Count - 1 do
+   begin
+      if DBGridP.Columns[I].FieldName = ColunaPesquisa then
+        DBGridP.Columns[I].Title.Font.Color := clRed
+      else
+        DBGridP.Columns[I].Title.Font.Color := clBlack;
+   end
+
+
+end;
+
+procedure TTProduto.edPesquisaProdutoKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if (Key = #13) and not Empty(edPesquisaProduto.Text) then
+  begin
+    with qProduto do
+    begin
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT COD_PRODUTO, DESCRICAO, PRECO, DATA_VALIDADE, ATIVO');
+      SQL.Add('FROM PRODUTO');
+      if edPesquisaProduto.Text <> '*' then
+      begin
+        if ColunaPesquisa = 'COD_PRODUTO' then
+          SQL.Add('WHERE COD_PRODUTO = ' + StringTextSql(edPesquisaProduto.Text));
+        if ColunaPesquisa = 'DESCRICAO' then
+          SQL.Add('WHERE DESCRICAO LIKE ''%' + edPesquisaProduto.Text + '%''');
+          lblPesquisa.Caption := 'Digite uma Descrição ou * para todos e Tecle Enter';
+        if ColunaPesquisa = 'PRECO' then
+          SQL.Add('WHERE PRECO LIKE ''%' + edPesquisaProduto.Text + '%''');
+        if ColunaPesquisa = 'DATA_VALIDADE' then
+          SQL.Add('WHERE DATA_VALIDADE LIKE ''%' + edPesquisaProduto.Text + '%''');
+      end;
+      Open;
+    end;
+  end;
+end;
+end.

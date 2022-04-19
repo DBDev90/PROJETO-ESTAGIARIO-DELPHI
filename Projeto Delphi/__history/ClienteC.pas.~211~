@@ -1,0 +1,204 @@
+unit ClienteC;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, ExtCtrls, StdCtrls, Mask, Buttons;
+
+type
+  TTClienteC = class(TForm)
+    Panel1: TPanel;
+    Panel2: TPanel;
+    cbAtivo: TCheckBox;
+    edNomeClienteC: TEdit;
+    lbNomeClienteC: TLabel;
+    lbRgClienteC: TLabel;
+    lblAtivo: TLabel;
+    btnCancelar: TBitBtn;
+    btnSalvar: TBitBtn;
+    edRgClienteC: TMaskEdit;
+    procedure btnSalvarClick(Sender: TObject);
+    procedure btnCancelarClick(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure FormShow(Sender: TObject);
+  private
+    { Private declarations }
+    xCodigo, yCodigo: string;
+    AcaoTela: Char;
+    procedure DesabilitaComponentes;
+    procedure CarregaDados;
+  public
+    { Public declarations }
+    function ChamaTela(Codigo: string; pAcaotela: Char): string;
+  end;
+
+var
+  TClienteC: TTClienteC;
+
+implementation
+
+uses
+  Funcoes, Funcoesdb, DMPrincipal, Produto, Cliente;
+
+{$R *.dfm}
+
+{ TTClienteC }
+
+
+{ TTClienteC }
+
+procedure TTClienteC.btnCancelarClick(Sender: TObject);
+begin
+  TClienteC.Close;
+end;
+
+procedure TTClienteC.btnSalvarClick(Sender: TObject);
+begin
+  if Empty(edNomeClienteC.Text) then
+  begin
+    EnviaMensagem('Informe o nome!', 'Informação', mtInformation, [mbOK]);
+    if edNomeClienteC.CanFocus then
+      edNomeClienteC.SetFocus;
+    Exit;
+  end;
+  if (edRgClienteC.Text = '__.___.___-_') or Empty(edRgClienteC.Text) then
+  begin
+    EnviaMensagem('Informe o RG!', 'Informação', mtInformation, [mbOK]);
+    if edRgClienteC.CanFocus then
+      edRgClienteC.SetFocus;
+  end;
+
+  if AcaoTela = 'I' then
+  begin
+    if not (VerificaRG('Cliente', edRgClienteC.Text)) then
+    begin
+      EnviaMensagem('O sistema já possui um cadastro com esse RG!', 'Informação', mtInformation, [mbOK]);
+      Exit;
+    end;
+  end;
+
+  edRgClienteC.Text := StringReplace(edRgClienteC.Text, ',', '.', [rfReplaceAll, rfIgnoreCase]);
+
+  with TDMPrincipal.qAux do
+  begin
+    case AcaoTela of
+      'I':
+        begin
+          Close;
+          SQL.Clear;
+          SQL.Add('INSERT INTO CLIENTE(NOME,RG,ATIVO)');
+          SQL.Add('VALUES(' + StringTextSql(edNomeClienteC.Text));
+          SQL.Add(', ' + StringTextSql(edRgClienteC.Text));
+          SQL.Add(',' + BooleanTextSql(cbAtivo.Checked));
+          SQL.Add(')');
+          ExecSQL;
+          EnviaMensagem('Usuário cadastrado com sucesso!', 'Informação', mtInformation, [mbOK]);
+
+          yCodigo := GetCodigo('CLIENTE');
+        end;
+      'E':
+        begin
+          Close;
+          SQL.Clear;
+          SQL.Add('UPDATE CLIENTE');
+          SQL.Add('SET');
+          SQL.Add('NOME = ' + StringTextSql(edNomeClienteC.Text));
+          SQL.Add(',RG = ' + StringTextSql(edRgClienteC.Text));
+
+          if cbAtivo.Checked then
+            SQL.Add(',ATIVO = 1')
+          else
+            sql.Add(',ATIVO = 0');
+
+          SQL.Add('WHERE COD_CLIENTE = ' + xCodigo);
+          ExecSQL;
+
+          EnviaMensagem('As informações do cliente foram alteradas!', 'Informação', mtInformation, [mbOK]);
+        end;
+    end;
+  end;
+  Close;
+end;
+
+procedure TTClienteC.CarregaDados;
+begin
+  with TDMPrincipal.qAux do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT NOME,RG,ATIVO');
+    SQL.Add('FROM CLIENTE');
+    SQL.Add('WHERE COD_CLIENTE = ' + xCodigo);
+    Open;
+    if not IsEmpty then
+    begin
+      edNomeClienteC.Text := FieldByName('NOME').AsString;
+      edRgClienteC.Text := FieldByName('RG').AsString;
+      cbAtivo.Checked := FieldByName('ATIVO').AsBoolean;
+    end;
+    case AcaoTela of
+      'C':
+        begin
+          DesabilitaComponentes;
+        end;
+    end;
+  end;
+end;
+
+function TTClienteC.ChamaTela(Codigo: string; pAcaotela: Char): string;
+begin
+  TClienteC := TTClienteC.Create(Application);
+  with TClienteC do
+  begin
+    xCodigo := Codigo;
+    AcaoTela := pAcaotela;
+
+    if pAcaotela <> 'I' then
+      CarregaDados
+    else
+    begin
+      cbAtivo.Checked := True;
+      cbAtivo.Enabled := False;
+    end;
+    ShowModal;
+    Result := yCodigo;
+  end;
+  FreeAndNil(TClienteC);
+end;
+
+procedure TTClienteC.DesabilitaComponentes;
+begin
+  edNomeClienteC.ReadOnly := True;
+  edRgClienteC.ReadOnly := True;
+  cbAtivo.Enabled := False;
+  btnSalvar.Visible := False;
+end;
+
+procedure TTClienteC.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  case Key of
+    VK_ESCAPE:
+      begin
+        if (btnCancelar.Visible) and (btnCancelar.Enabled) then
+          btnCancelar.Click;
+      end;
+    VK_F5:
+      begin
+        if (btnSalvar.Visible) and (btnSalvar.Enabled) then
+          btnSalvar.Click;
+      end;
+  end;
+end;
+
+procedure TTClienteC.FormShow(Sender: TObject);
+begin
+  if AcaoTela = 'I' then
+  begin
+    if edNomeClienteC.CanFocus then
+      edNomeClienteC.SetFocus;
+  end;
+end;
+
+end.
+

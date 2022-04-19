@@ -1,0 +1,246 @@
+unit Compra;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ExtCtrls, Grids, DBGrids, DB, ADODB, DBCtrls, Buttons;
+
+type
+  TTCompra = class(TForm)
+    Panel3: TPanel;
+    lblPesquisa: TLabel;
+    edPesquisaCompra: TEdit;
+    Panel2: TPanel;
+    Panel1: TPanel;
+    Panel4: TPanel;
+    DBGrid1: TDBGrid;
+    DBGrid2: TDBGrid;
+    qCompra: TADOQuery;
+    dsCompra: TDataSource;
+    Panel5: TPanel;
+    DBNavigator1: TDBNavigator;
+    Label1: TLabel;
+    lblNumRegistroC: TLabel;
+    qProdutoC: TADOQuery;
+    dsProdC: TDataSource;
+    btnLimpar: TBitBtn;
+    btnFechar: TBitBtn;
+    btnExcluir: TBitBtn;
+    btnEditar: TBitBtn;
+    btnConsultar: TBitBtn;
+    btnInserir: TBitBtn;
+    qCompraCOD_COMPRA: TIntegerField;
+    qCompraDATA: TDateField;
+    qCompraNOME: TStringField;
+    qProdutoCCOD_PRODUTO: TIntegerField;
+    qProdutoCDESCRICAO: TStringField;
+    qProdutoCQUANTIDADE: TIntegerField;
+    procedure btnFecharClick(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure btnLimparClick(Sender: TObject);
+    procedure edPesquisaCompraKeyPress(Sender: TObject; var Key: Char);
+    procedure DBGrid1TitleClick(Column: TColumn);
+    procedure btnInserirClick(Sender: TObject);
+    procedure btnConsultarClick(Sender: TObject);
+    procedure btnEditarClick(Sender: TObject);
+    procedure btnExcluirClick(Sender: TObject);
+  private
+    { Private declarations }
+    ColunaPesquisa: string;
+    CanClose: Boolean;
+  public
+    { Public declarations }
+    procedure ChamaTela;
+  end;
+
+var
+  TCompra: TTCompra;
+
+implementation
+
+uses
+  DMPrincipal, Funcoes, Funcoesdb, CompraC, Cliente;
+
+{$R *.dfm}
+
+{ TTCompra }
+
+procedure TTCompra.btnConsultarClick(Sender: TObject);
+begin
+  if qCompra.IsEmpty then
+  begin
+    EnviaMensagem('É preciso selecionar uma compra para Consultar', 'Informação', mtInformation, [mbOK]);
+    if edPesquisaCompra.CanFocus then
+      edPesquisaCompra.SetFocus;
+    Exit;
+  end;
+end;
+
+procedure TTCompra.btnEditarClick(Sender: TObject);
+begin
+  if qCompra.IsEmpty then
+  begin
+    EnviaMensagem('É preciso selecionar uma compra para Editar', 'Informação', mtInformation, [mbOK]);
+    if edPesquisaCompra.CanFocus then
+      edPesquisaCompra.SetFocus;
+    Exit;
+  end
+  else
+    TCompraC.ChamaTelaC('', 'E');
+end;
+
+procedure TTCompra.btnExcluirClick(Sender: TObject);
+begin
+  CanClose := False;
+
+  if qCompra.IsEmpty then
+  begin
+    EnviaMensagem('É preciso selecionar uma compra para Excluir', 'Informação', mtInformation, [mbOK]);
+    if edPesquisaCompra.CanFocus then
+      edPesquisaCompra.SetFocus;
+    Exit;
+  end
+  else
+  begin
+    if (MessageBox(Handle, 'Você tem certeza dessa ação?', 'Atenção', MB_ICONQUESTION + MB_YESNO)) = IDYES then
+      CanClose := True
+    else
+      Exit;
+    if CanClose = True then
+    begin
+      with TDMPrincipal.qAux do
+      begin
+
+        EnviaMensagem('O cliente foi excluído!', 'Informação', mtInformation, [mbOK]);
+      end;
+      qCompra.Requery;
+    end;
+  end;
+end;
+
+procedure TTCompra.btnFecharClick(Sender: TObject);
+begin
+  TCompra.Close;
+end;
+
+procedure TTCompra.btnInserirClick(Sender: TObject);
+begin
+  TCompraC.ChamaTelaC('', 'I');
+end;
+
+procedure TTCompra.btnLimparClick(Sender: TObject);
+begin
+  qCompra.Close;
+  edPesquisaCompra.Clear;
+  edPesquisaCompra.Clear;
+  lblNumRegistroC.Caption := '0';
+  if edPesquisaCompra.CanFocus then
+    edPesquisaCompra.SetFocus;
+end;
+
+procedure TTCompra.ChamaTela;
+begin
+  TCompra := TTCompra.Create(Application);
+  with TCompra do
+  begin
+    ShowModal;
+  end;
+  FreeAndNil(TCompra);
+end;
+
+procedure TTCompra.DBGrid1TitleClick(Column: TColumn);
+var
+  I: Integer;
+begin
+  ColunaPesquisa := Column.FieldName;
+  lblPesquisa.Caption := 'Digite um ' + Column.Title.Caption + ' ou * para Todos e Tecle Enter';
+  btnLimpar.Click;
+
+  for I := 0 to DBGrid1.Columns.Count - 1 do
+  begin
+    if DBGrid1.Columns[I].FieldName = ColunaPesquisa then
+      DBGrid1.Columns[I].Title.Font.Color := clRed
+    else
+      DBGrid1.Columns[I].Title.Font.Color := clBlack;
+  end;
+end;
+
+procedure TTCompra.edPesquisaCompraKeyPress(Sender: TObject; var Key: Char);
+begin
+  if (Key = #13) and not Empty(edPesquisaCompra.Text) then
+  begin
+    with qCompra do
+    begin
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT C.COD_COMPRA,C.DATA,CL.NOME');
+      SQL.Add('FROM COMPRA C');
+      SQL.Add('INNER JOIN CLIENTE CL');
+      SQL.Add('ON CL.COD_CLIENTE = C.COD_CLIENTE');
+
+      if (edPesquisaCompra.Text) <> '*' then
+      begin
+        if ColunaPesquisa = 'COD_COMPRA' then
+          SQL.Add('WHERE COD_COMPRA = ' + StringTextSql(edPesquisaCompra.Text));
+
+        if ColunaPesquisa = 'DATA' then
+          SQL.Add('WHERE DATA LIKE ''%' + edPesquisaCompra.Text + '%''');
+
+        if ColunaPesquisa = 'COD_CLIENTE' then
+          SQL.Add('WHERE COD_CLIENTE = ' + edPesquisaCompra.Text);
+      end;
+
+      Open;
+
+      if qCompra.IsEmpty then
+      begin
+        EnviaMensagem('Não há registros no sistema, verifique a informação digitada!', 'Informação', mtInformation, [mbOK]);
+        Exit;
+      end;
+
+//      TFloatField(qCompra.FieldByName('VALOR_TOTAL')).currency := true;
+
+      lblNumRegistroC.Caption := IntToStr(qCompra.RecordCount);
+    end;
+  end;
+end;
+
+procedure TTCompra.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  case Key of
+    VK_ESCAPE:
+      begin
+        if (btnFechar.Visible) and (btnFechar.Enabled) then
+          btnFechar.Click;
+      end;
+    VK_F2:
+      begin
+        if (btnInserir.Visible) and (btnInserir.Enabled) then
+          btnInserir.Click;
+      end;
+    VK_F3:
+      begin
+        if (btnConsultar.Visible) and (btnConsultar.Enabled) then
+          btnConsultar.Click;
+      end;
+    VK_F4:
+      begin
+        if (btnEditar.Visible) and (btnEditar.Enabled) then
+          btnEditar.Click;
+      end;
+    VK_F6:
+      begin
+        if (btnLimpar.Visible) and (btnLimpar.Enabled) then
+          btnLimpar.Click;
+      end;
+    VK_F8:
+      begin
+        if (btnExcluir.Visible) and (btnExcluir.Enabled) then
+          btnExcluir.Click;
+      end;
+  end;
+end;
+
+end.
+

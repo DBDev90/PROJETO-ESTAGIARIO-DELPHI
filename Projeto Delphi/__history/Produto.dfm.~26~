@@ -1,0 +1,296 @@
+object TProduto: TTProduto
+  Left = 0
+  Top = 0
+  Caption = 'Produto'
+  ClientHeight = 402
+  ClientWidth = 715
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poScreenCenter
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 715
+    Height = 59
+    Align = alTop
+    TabOrder = 0
+    object Label1: TLabel
+      Left = 241
+      Top = 36
+      Width = 71
+      Height = 14
+      Caption = 'N'#186' Registros:'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+    end
+    object lbNumRegistro: TLabel
+      Left = 318
+      Top = 36
+      Width = 8
+      Height = 14
+      Caption = '0'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clRed
+      Font.Height = -12
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object rgFiltroCliente: TRadioGroup
+      Left = 464
+      Top = 0
+      Width = 248
+      Height = 53
+      Caption = 'Filtrar por ...'
+      Columns = 3
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ItemIndex = 0
+      Items.Strings = (
+        'Ativo'
+        'Inativo'
+        'Todos')
+      ParentFont = False
+      TabOrder = 0
+    end
+    object DBNavigator1: TDBNavigator
+      Left = 8
+      Top = 9
+      Width = 224
+      Height = 41
+      VisibleButtons = [nbFirst, nbPrior, nbNext, nbLast]
+      TabOrder = 1
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Top = 362
+    Width = 715
+    Height = 40
+    Align = alBottom
+    TabOrder = 1
+    object btnTransferir: TButton
+      Left = 8
+      Top = 4
+      Width = 106
+      Height = 33
+      Caption = 'Transferir [F12]'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 0
+    end
+    object btnInserir: TButton
+      Left = 167
+      Top = 4
+      Width = 106
+      Height = 33
+      Caption = 'Inserir [F2]'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 1
+      OnClick = btnInserirClick
+    end
+    object btnConsultar: TButton
+      Left = 276
+      Top = 4
+      Width = 106
+      Height = 33
+      Caption = 'Consultar [F3]'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 2
+      OnClick = btnConsultarClick
+    end
+    object btnEditar: TButton
+      Left = 386
+      Top = 4
+      Width = 106
+      Height = 33
+      Caption = 'Editar [F4]'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 3
+      OnClick = btnEditarClick
+    end
+    object btnExcluir: TButton
+      Left = 496
+      Top = 4
+      Width = 106
+      Height = 33
+      Caption = 'Excluir [F8]'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 4
+      OnClick = btnExcluirClick
+    end
+    object btnFechar: TButton
+      Left = 606
+      Top = 4
+      Width = 106
+      Height = 33
+      Caption = 'Fechar [ESC]'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 5
+      OnClick = btnFecharClick
+    end
+  end
+  object Panel3: TPanel
+    Left = 0
+    Top = 297
+    Width = 715
+    Height = 65
+    Align = alBottom
+    TabOrder = 2
+    object lblPesquisa: TLabel
+      Left = 8
+      Top = 6
+      Width = 204
+      Height = 14
+      Caption = 'Digite uma Descri'#231#227'o ou * para todos'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+    end
+    object edPesquisaProduto: TEdit
+      Left = 8
+      Top = 26
+      Width = 537
+      Height = 21
+      TabOrder = 0
+      OnKeyPress = edPesquisaProdutoKeyPress
+    end
+    object btnLimpar: TButton
+      Left = 606
+      Top = 26
+      Width = 106
+      Height = 33
+      Caption = 'Limpar [F6]'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 1
+      OnClick = btnLimparClick
+    end
+  end
+  object DBGridP: TDBGrid
+    Left = 0
+    Top = 59
+    Width = 715
+    Height = 238
+    Align = alClient
+    DataSource = TDMPrincipal.dsProduto
+    TabOrder = 3
+    TitleFont.Charset = DEFAULT_CHARSET
+    TitleFont.Color = clWindowText
+    TitleFont.Height = -11
+    TitleFont.Name = 'Tahoma'
+    TitleFont.Style = []
+    OnTitleClick = DBGridPTitleClick
+    Columns = <
+      item
+        Expanded = False
+        FieldName = 'COD_PRODUTO'
+        Title.Caption = 'C'#243'digo'
+        Title.Font.Charset = DEFAULT_CHARSET
+        Title.Font.Color = clWindowText
+        Title.Font.Height = -12
+        Title.Font.Name = 'Tahoma'
+        Title.Font.Style = [fsBold]
+        Width = 52
+        Visible = True
+      end
+      item
+        Expanded = False
+        FieldName = 'DESCRICAO'
+        Title.Caption = 'Descri'#231#227'o'
+        Title.Font.Charset = DEFAULT_CHARSET
+        Title.Font.Color = clWindowText
+        Title.Font.Height = -12
+        Title.Font.Name = 'Tahoma'
+        Title.Font.Style = [fsBold]
+        Width = 319
+        Visible = True
+      end
+      item
+        Expanded = False
+        FieldName = 'PRECO'
+        Title.Caption = 'Pre'#231'o'
+        Title.Font.Charset = DEFAULT_CHARSET
+        Title.Font.Color = clWindowText
+        Title.Font.Height = -12
+        Title.Font.Name = 'Tahoma'
+        Title.Font.Style = [fsBold]
+        Width = 107
+        Visible = True
+      end
+      item
+        Expanded = False
+        FieldName = 'DATA_VALIDADE'
+        Title.Caption = 'Data de Validade'
+        Title.Font.Charset = DEFAULT_CHARSET
+        Title.Font.Color = clWindowText
+        Title.Font.Height = -12
+        Title.Font.Name = 'Tahoma'
+        Title.Font.Style = [fsBold]
+        Width = 134
+        Visible = True
+      end
+      item
+        Expanded = False
+        FieldName = 'ATIVO'
+        Title.Caption = 'Ativo'
+        Title.Font.Charset = DEFAULT_CHARSET
+        Title.Font.Color = clWindowText
+        Title.Font.Height = -12
+        Title.Font.Name = 'Tahoma'
+        Title.Font.Style = [fsBold]
+        Width = 54
+        Visible = True
+      end>
+  end
+end

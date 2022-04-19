@@ -1,0 +1,112 @@
+Tabelas temporárias também podem ser criadas em tempo de execução, bem como a definição dos seus campos. Observe o exemplo abaixo, onde instancio um TClientDataSet e adiciono três campos de diferentes tipos de dados (integer, string e float):
+
+var
+  ClientDataSet1: TClientDataSet; // a unit DBClient deve ser declarada na "uses"
+begin
+  ClientDataSet1 := TClientDataSet.Create(nil);
+  ClientDataSet1.FieldDefs.Add('CODIGO', ftInteger);
+  ClientDataSet1.FieldDefs.Add('DESCRICAO', ftString, 60);
+  ClientDataSet1.FieldDefs.Add('VALOR', ftFloat);
+  ClientDataSet1.CreateDataSet;
+end;
+ 
+
+E campos agregados também! Caso você não conheça, campos agregados servem para realizar cálculos em uma determinada coluna do ClientDataSet. No exemplo a seguir, criei um campo agregado para somar automaticamente o valor total de todos os itens da tabela.
+
+with ClientDataSet1.Aggregates.Add do
+begin
+  AggregateName := 'Valor Total';
+  Expression := 'SUM(TOTAL)';
+  Active := True;
+end;
+ClientDataSet1.AggregatesActive := True;
+ 
+
+Muitas vezes pode ser necessário “esvaziar” a tabela temporária, como por exemplo, no botão “Limpar” ou “Cancelar” de um formulário. Essa instrução pode ser realizada com apenas uma linha de código:
+
+ClientDataSet1.EmptyDataSet;
+ 
+
+Barbada, não?
+Além disso, tabelas temporárias também permitem a navegação entre os registros na memória utilizando os métodos tradicionais já conhecidos:
+
+ClientDataSet1.First; // move para o primeiro registro
+ClientDataSet1.Last;  // move para o último registro
+ClientDataSet1.Prior; // move para o registro anterior
+ClientDataSet1.Next;  // move para o próximo registro
+ 
+
+Outro recurso bastante interessante do ClientDataSet é o clone do conjunto de dados. Através do comando CloneCursor é possível copiar os dados de um ClientDataSet para outro, e então manipulá-los de maneira independente.
+
+// ClientDataSet2 "clona" os dados de ClientDataSet1
+ClientDataSet2.CloneCursor(ClientDataSet1, True);
+ 
+
+Agora, imagine que estamos utilizando uma tabela temporária para gravar itens de uma venda. Não é interessante que produtos repetidos sejam inseridos na tabela, concorda? Afinal, se o código do produto fizer parte da chave primária, ocorrerá um erro ao gravar os itens da venda.
+Para resolver isso, podemos utilizar a função Locate e controlar a inserção de itens repetidos:
+
+if ClientDataSet1.Locate('COD_PRODUTO', edtCodProduto.Text, []) then
+  ShowMessage('Este produto já foi adicionado!')
+else
+  // grava o registro na tabela
+ 
+
+Para filtrar os registros, não há segredo. No exemplo abaixo, tenho um componente do tipo TEdit chamado edtPesquisa, e permito o filtro da descrição de um registro na tabela temporária conforme o conteúdo digitado no campo:
+
+ClientDataSet1.Filter := 'DESCRICAO like ' + QuotedStr(edtPesquisa.Text + '%');
+ClientDataSet1.Filtered := True; // ativa o filtro
+
+
+
+#################################################################################################################################################################################################################################################################################################
+
+BOF =  True indica que o ponteiro está no primeiro registro da tabela e ocorre nos seguintes casos :
+             - quando você abre a tabela;
+        -  quando você executa o método First;
+        -  quando você executa o método  Prior e ocorre uma falha....
+
+EOF  = True indica que o ponteiro está no último registro da tabela e ocorre nos seguintes casos :
+             - Quando você abre um dataset vazio.
+        -  Quando você chama o método Last;
+        -  Quando você chama o método  Last  e ocorre  fallha no índice.
+
+Exemplo :
+        while not Tablen.EOF do
+        begin
+         { Faça algum processamento no registro}
+        Tablen.Next;
+             end;
+
+
+
+#################################################################################################################################################################################################################################################################################################
+
+LIMPAR REGISTROS MEMÓRIA
+
+if ClientDataSet.Acitve then
+ClientDataSet.EmptyDataSet;
+
+#################################################################################################################################################################################################################################################################################################
+
+APAGAR REGISTROS TABELA
+
+delete from NOMEDASUATABELAADELETAR
+
+
+1
+2
+3
+4
+5
+6
+7
+var
+  {:...}
+begin
+  ClientDataSet.close;
+  ClientDataSet.CommandText := ´delete from NOMEDASUATABELAADELETAR´;
+  ClientDataSet.Open;
+end;
+
+
+Lembre-se que para fazer uso da propriedade CommandText do ClientDataSet, é preciso que a propriedade pAllowCommandText do DataSetProdiver seja ativada. 

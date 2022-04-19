@@ -1,0 +1,218 @@
+https://www.devmedia.com.br/clientdataset-gerando-tabela-temporaria-em-memoria/3193
+
+
+Hello amigos Delphianos, neste artigo gostaria de passar alguns dos recursos, que está SUPER ferramenta de desenvolvimento, estou falando do Delphi é claro, vêm nos proporcionando a cada ano de sua vida (e olha que ainda é uma criança de apenas 10 anos). Hoje vou falar do ClientDataSet, nos ajudando a criar uma tabela temporária em memória, para incluímos registros temporários, e depois fazermos o que quisermos com eles, gravar em banco de dados em arquivo em disco e etc...
+
+Podemos comparar o ClientDataSet, com Bom Bril (mil e uma utilidades), este poderoso componente nos permite diversas coisas em se tratando de dados, e é sobre dados temporários em memória que vou falar. Quem nunca usou TRxMemoryData do RXLIB, que manipulávamos registros em memória com ele e depois salvávamos em banco? Como por ex: gerar parcelas a receber na nota de saída, dar manutenção em datas de vencimento, valores e ai sim, salvar no banco de dados
+
+Bom vamos ao que interessa:
+
+Criando um novo Projeto
+File > New > Application, insira no Formulário, um TClientDataSet e renome-o para CDS, insira um TDataSource e renome-o para DS e mude seu DataSet para CDS, insira um TDBGrid e mude seu DataSource para DS, insira um TDBNavigator e mude seu DataSource para DS, e por último insira nove TButtons e mude seus captions como visto na Figura 1.
+
+Formulário da aplicação
+Figura 1. Formulário da aplicação.
+Criando Estrutura
+Vamos criar agora a estrutura de nossa tabela. Dê dois clique sobre o CDS e vamos inserir os TFields referente os campos que queremos em nossa estrutura Figura 1.1.
+
+Editor de Campos
+Figura 1.1. Editor de Campos.
+Editor para criar novo TField
+Figura 1.2. Editor para criar novo TField.
+Pressione a tecla [INS] no Editor de Campos, então será aberto o editor para criar novo TField como a Figura 1.2. Em seguida insira os TFields com as informações que segue abaixo:
+
+Name = ID , Type = Integer, Field type = Data;
+
+Name = NOME, Type = String, Size = 40, Field type = Data;
+
+Name = VALOR, Type = BCD, Size = 2, Field type = Data;
+Nota: Nos TFields criado, pode e acho que deve, ser atribuído configurações para as propriedades como: DisplayFormat, DefaultExpression, Required entre outros etc..
+
+Criando os Eventos dos Buttons
+Listagem 1. Botão [Abir] – Criar a tabela temporária em memória em seguida abre, para que possa ser usada.
+procedure TForm1.btnAbrirClick(Sender: TObject);
+
+begin
+
+   // Cria tabela temporária na memória.
+
+   CDS.CreateDataSet;
+
+   // Abre a tabela depois de criada.
+
+   CDS.Open;
+
+end;
+Listagem 2. Botão [Fechar] – Fechar a tabela temporária da memória, consequentemente se os dados digitados não forem salvos, serão perdidos.
+procedure TForm1.btnFecharClick(Sender: TObject);
+
+begin
+
+   // Fecha a tabela temporária da memória.
+
+   CDS.Close;
+
+end
+Listagem 3. Botão [Limpar Tabela] – Limpa todos os registros da tabela temporária.
+procedure TForm1.btnLimparClick(Sender: TObject);
+
+begin
+
+   // Apaga todos os registros da tabela temporária na memória.
+
+   Cds.EmptyDataSet;
+
+end;
+Listagem 4. Botão [Clonar Registro] – Insere um novo registro na tabela temporária, clone do registro atual.
+procedure TForm1.btnClonarClick(Sender: TObject);
+
+var
+
+varCdsClone: TClientDataSet;
+
+varI: Integer;
+
+begin
+
+  // Cria uma variavél de tabela temporária na memória,
+
+  // para receber os dados do registro a ser clonado.
+
+  varCdsClone := TClientDataSet.Create(self);
+
+  try
+
+    // Clona o registro para a variével criada acima.
+
+    varCdsClone.CloneCursor(TClientDataSet(Cds),True);
+
+    // Insere o novo registro na sua tabela original.
+
+    Cds.Append;
+
+    // Faz um loop para processar todos os campos da sua tabela original.
+
+    for varI := 0 to Cds.FieldCount -1 do
+
+    begin
+
+       // Verifica se o tipo do campo é do tipo data, para que não pegue valores
+
+       // de campos do tipo calculado.
+
+       if (Cds.Fields[varI].FieldKind = fkData) then
+
+          // Diz que o campo de sua tabela original, vai receber o campo da
+
+          // tabela temporária que foi clonada.
+
+          Cds.Fields[varI].Value := varCdsClone.FieldByName(Cds.Fields[varI].FieldName).Value;
+
+    end;
+
+  finally
+
+    // Fecha a tabela temporária clonada.
+
+    varCdsClone.Close;
+
+    // Libera a var da tabela temporária clonada da memória.
+
+    varCdsClone.Free;
+
+  end;
+
+end;
+Listagem 5. Botão [Salvar em Disco] – Salva os dados da tabela temporária em arquivo.
+procedure TForm1.btnSalvarClick(Sender: TObject);
+
+begin
+
+   // Salva os registro na tabela temporária na memória para o disco.
+
+   Cds.SaveToFile(Cds_Temp.xml);
+
+end;
+Listagem 6. Botão [Carregar do Disco] – Carrega os dados em arquivo para a tabela temporária.
+procedure TForm1.btnCarregarClick(Sender: TObject);
+
+begin
+
+  // Carrega o arquivo .XML, para memória.
+
+  Cds.LoadFromFile(Cds_Temp.xml);
+
+end;
+Listagem 7. Botão [Criar Índice Nome] – Cria um índice pelo campo selecionado, e em seguida ordena os dados.
+procedure TForm1.btnIndiceClick(Sender: TObject);
+
+begin
+
+   // Cria o índice pelo campo NOME.
+
+   Cds.IndexFieldNames := NOME;
+
+end;
+Listagem 8. Botão [Ativar Log] – Ativa o recurso de log das alterações feitas nos dados. Veja na Figura 2.
+procedure TForm1.btnAtivarLogClick(Sender: TObject);
+
+begin
+
+   // Ativa o log.
+
+   CDS.LogChanges := True;
+
+end;
+<?xml version="1.0" standalone="yes" ?>
+
+- <DATAPACKET Version="2.0">
+
+- <METADATA>
+
+- <FIELDS>
+
+  <FIELD attrname="ID" fieldtype="i4" />
+
+  <FIELD attrname="NOME" fieldtype="string" WIDTH="40" />
+
+  <FIELD attrname="VALOR" fieldtype="fixed" DECIMALS="2" WIDTH="32" />
+
+  </FIELDS>
+
+  <PARAMS CHANGE_LOG="7 6 8 8 7 8" /> (Log Ativado)
+
+  </METADATA>
+
+- <ROWDATA>
+
+  <ROW ID="1" NOME="EU" VALOR="1.00" />
+
+  <ROW ID="1" NOME="NOS" VALOR="2.00" />
+
+  <ROW ID="1" NOME="VAMOS" VALOR="3.00" />
+
+  <ROW ID="1" NOME="SOMOS" VALOR="4.00" />
+
+  <ROW ID="1" NOME="FICAMOS" VALOR="5.00" />
+
+  <ROW RowState="1" ID="1" NOME="VOCES" VALOR="7.00" />  (1ª alteração)
+
+  <ROW RowState="9" ID="1" NOME="VOCES" VALOR="6.00" />  (2ª alteração)
+
+  <ROW RowState="8" ID="1" NOME="VOCES" VALOR="10.00" />  (registro atual)
+
+  </ROWDATA>
+
+  </DATAPACKET>
+Figura 2. Exemplo do arquivo XML salvo com o recurso de log.
+
+Listagem 9. Botão [Desativar Log] – Desativar recurso de log das alterações feitas nos dados.
+procedure TForm1.btnDesativarLogClick(Sender: TObject);
+
+begin
+
+   // Desativar Log.
+
+   CDS.LogChanges := False;
+
+end;

@@ -1,0 +1,492 @@
+unit Produto;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, Grids, DBGrids, StdCtrls, ExtCtrls, DBCtrls, DB, ADODB;
+
+type
+  TTProduto = class(TForm)
+    Panel1: TPanel;
+    Label1: TLabel;
+    lblNumRegistroP: TLabel;
+    rgFiltroProduto: TRadioGroup;
+    Panel2: TPanel;
+    Panel3: TPanel;
+    lblPesquisa: TLabel;
+    edPesquisaProduto: TEdit;
+    btnLimpar: TButton;
+    DBGridP: TDBGrid;
+    btnTransferir: TButton;
+    btnInserir: TButton;
+    btnConsultar: TButton;
+    btnEditar: TButton;
+    btnExcluir: TButton;
+    btnFechar: TButton;
+    DBNavigator1: TDBNavigator;
+    qProduto: TADOQuery;
+    dsProduto: TDataSource;
+    procedure btnInserirClick(Sender: TObject);
+    procedure btnConsultarClick(Sender: TObject);
+    procedure btnEditarClick(Sender: TObject);
+    procedure btnFecharClick(Sender: TObject);
+    procedure btnLimparClick(Sender: TObject);
+    procedure DBGridPTitleClick(Column: TColumn);
+    procedure edPesquisaProdutoKeyPress(Sender: TObject; var Key: Char);
+    procedure btnExcluirClick(Sender: TObject);
+    procedure rgFiltroProdutoClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+  private
+    { Private declarations }
+    ColunaPesquisa: string;
+    CanClose: Boolean;
+  public
+    { Public declarations }
+    procedure ChamaTelaP;
+
+    //procedure FiltroProdAtv;
+    //procedure FiltroProdIna;
+    //procedure filtroProdTodos;
+  end;
+
+var
+  TProduto: TTProduto;
+
+implementation
+
+uses
+  ProdutoC, DMPrincipal, Funcoes, Funcoesdb;
+
+{$R *.dfm}
+
+{ TTProduto }
+
+
+
+{ TTProduto }
+
+procedure TTProduto.btnConsultarClick(Sender: TObject);
+begin
+  if qProduto.IsEmpty then
+  begin
+    EnviaMensagem('É preciso selecionar um produto para Consultar', 'Informação', mtConfirmation, [mbOK]);
+    if edPesquisaProduto.CanFocus then
+      edPesquisaProduto.SetFocus;
+    Exit;
+  end
+  else
+    TProdutoC.ChamaTelaP(qProduto.FieldByName('COD_PRODUTO').AsString, 'C');
+end;
+
+procedure TTProduto.btnEditarClick(Sender: TObject);
+
+  function Filtro: string;
+  begin
+    if TProduto.Tag = 0 then
+    begin
+      TProduto.Tag := 1;
+      Result := ' WHERE ';
+    end
+    else
+      Result := ' AND ';
+  end;
+
+begin
+  if qProduto.IsEmpty then
+  begin
+    EnviaMensagem('É preciso selecionar um produto para Editar', 'Informação', mtConfirmation, [mbOK]);
+    if edPesquisaProduto.CanFocus then
+      edPesquisaProduto.SetFocus;
+    Exit;
+  end
+  else
+    TProdutoC.ChamaTelaP(qProduto.FieldByName('COD_PRODUTO').AsString, 'E');
+
+  with qProduto do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT COD_PRODUTO, DESCRICAO, PRECO, DATA_VALIDADE, ATIVO');
+    SQL.Add('FROM PRODUTO');
+    if edPesquisaProduto.Text <> '*' then
+    begin
+      if ColunaPesquisa = 'COD_PRODUTO' then
+        SQL.Add(Filtro + ' COD_PRODUTO = ' + StringTextSql(edPesquisaProduto.Text));
+
+      if ColunaPesquisa = 'DESCRICAO' then
+        SQL.Add(Filtro + ' DESCRICAO LIKE ''%' + edPesquisaProduto.Text + '%''');
+
+      lblPesquisa.Caption := 'Digite uma Descrição ou * para todos e Tecle Enter';
+      if ColunaPesquisa = 'PRECO' then
+        SQL.Add(Filtro + ' PRECO LIKE ''%' + edPesquisaProduto.Text + '%''');
+
+      if ColunaPesquisa = 'DATA_VALIDADE' then
+        SQL.Add(Filtro + ' DATA_VALIDADE LIKE ''%' + edPesquisaProduto.Text + '%''');
+    end;
+    case rgFiltroProduto.ItemIndex of
+      0:
+        SQL.Add(Filtro + ' ATIVO = 1');
+      1:
+        SQL.Add(Filtro + ' ATIVO = 0');
+    end;
+    Open;
+    lblNumRegistroP.Caption := IntToStr(qProduto.RecordCount);
+  end;
+end;
+
+procedure TTProduto.btnExcluirClick(Sender: TObject);
+
+  function Filtro: string;
+  begin
+    if TProduto.Tag = 0 then
+    begin
+      TProduto.Tag := 1;
+      Result := ' WHERE ';
+    end
+    else
+      Result := ' AND ';
+  end;
+
+begin
+  CanClose := False;
+
+  if qProduto.IsEmpty then
+  begin
+    EnviaMensagem('É preciso selecionar um produto para Excluir', 'Informação', mtConfirmation, [mbOK]);
+    if edPesquisaProduto.CanFocus then
+      edPesquisaProduto.SetFocus;
+    Exit;
+  end
+  else
+  begin
+    if (MessageBox(Handle, 'Você tem certeza dessa ação?', 'Atenção', MB_ICONQUESTION + MB_YESNO)) = IDYES then
+      CanClose := True
+    else
+      Exit;
+
+    if CanClose = True then
+    begin
+      with TDMPrincipal.qAux do
+      begin
+        Close;
+        SQL.Clear;
+        SQL.Add('DELETE PRODUTO');
+        SQL.Add('WHERE COD_PRODUTO = ' + qProduto.FieldByName('COD_PRODUTO').AsString);
+        ExecSQL;
+
+        EnviaMensagem('O produto foi excluído!','Informação',mtInformation,[mbOK]);
+      end;
+    end;
+
+
+    with qProduto do
+    begin
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT COD_PRODUTO, DESCRICAO, PRECO, DATA_VALIDADE, ATIVO');
+      SQL.Add('FROM PRODUTO');
+      if edPesquisaProduto.Text <> '*' then
+      begin
+        if ColunaPesquisa = 'COD_PRODUTO' then
+          SQL.Add(Filtro + ' COD_PRODUTO = ' + StringTextSql(edPesquisaProduto.Text));
+
+        if ColunaPesquisa = 'DESCRICAO' then
+          SQL.Add(Filtro + ' DESCRICAO LIKE ''%' + edPesquisaProduto.Text + '%''');
+
+        lblPesquisa.Caption := 'Digite uma Descrição ou * para todos e Tecle Enter';
+        if ColunaPesquisa = 'PRECO' then
+          SQL.Add(Filtro + ' PRECO LIKE ''%' + edPesquisaProduto.Text + '%''');
+
+        if ColunaPesquisa = 'DATA_VALIDADE' then
+          SQL.Add(Filtro + ' DATA_VALIDADE LIKE ''%' + edPesquisaProduto.Text + '%''');
+      end;
+      case rgFiltroProduto.ItemIndex of
+        0:
+          SQL.Add(Filtro + ' ATIVO = 1');
+        1:
+          SQL.Add(Filtro + ' ATIVO = 0');
+      end;
+      Open;
+      lblNumRegistroP.Caption := IntToStr(qProduto.RecordCount);
+    end;
+  end;
+end;
+
+procedure TTProduto.btnFecharClick(Sender: TObject);
+begin
+  TProduto.Close;
+end;
+
+procedure TTProduto.btnInserirClick(Sender: TObject);
+
+  function Filtro: string;
+  begin
+    if TProduto.Tag = 0 then
+    begin
+      TProduto.Tag := 1;
+      Result := ' WHERE ';
+    end
+    else
+      Result := ' AND ';
+  end;
+
+begin
+  TProdutoC.ChamaTelaP(' ', 'I');
+
+  with qProduto do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT COD_PRODUTO, DESCRICAO, PRECO, DATA_VALIDADE, ATIVO');
+    SQL.Add('FROM PRODUTO');
+    if edPesquisaProduto.Text <> '*' then
+    begin
+      if ColunaPesquisa = 'COD_PRODUTO' then
+        SQL.Add(Filtro + ' COD_PRODUTO = ' + StringTextSql(edPesquisaProduto.Text));
+
+      if ColunaPesquisa = 'DESCRICAO' then
+        SQL.Add(Filtro + ' DESCRICAO LIKE ''%' + edPesquisaProduto.Text + '%''');
+
+      lblPesquisa.Caption := 'Digite uma Descrição ou * para todos e Tecle Enter';
+      if ColunaPesquisa = 'PRECO' then
+        SQL.Add(Filtro + ' PRECO LIKE ''%' + edPesquisaProduto.Text + '%''');
+
+      if ColunaPesquisa = 'DATA_VALIDADE' then
+        SQL.Add(Filtro + ' DATA_VALIDADE LIKE ''%' + edPesquisaProduto.Text + '%''');
+    end;
+    case rgFiltroProduto.ItemIndex of
+      0:
+        SQL.Add(Filtro + ' ATIVO = 1');
+      1:
+        SQL.Add(Filtro + ' ATIVO = 0');
+    end;
+    Open;
+    lblNumRegistroP.Caption := IntToStr(qProduto.RecordCount);
+  end;
+end;
+
+procedure TTProduto.btnLimparClick(Sender: TObject);
+begin
+  qProduto.Close;
+  edPesquisaProduto.Clear;
+  lblNumRegistroP.Caption := '0';
+  if edPesquisaProduto.CanFocus then
+    edPesquisaProduto.SetFocus;
+end;
+
+procedure TTProduto.ChamaTelaP;
+begin
+  TProduto := TTProduto.Create(Application);
+  with TProduto do
+  begin
+    ShowModal;
+  end;
+  FreeAndNil(TProduto);
+end;
+
+procedure TTProduto.DBGridPTitleClick(Column: TColumn);
+var
+  I: Integer;
+begin
+  ColunaPesquisa := Column.FieldName;
+  lblPesquisa.Caption := 'Digite um ' + Column.Title.Caption + ' ou * para todos e Tecle Enter';
+  btnLimpar.Click;
+
+  for I := 0 to DBGridP.Columns.Count - 1 do
+  begin
+    if DBGridP.Columns[I].FieldName = ColunaPesquisa then
+      DBGridP.Columns[I].Title.Font.Color := clRed
+    else
+      DBGridP.Columns[I].Title.Font.Color := clBlack;
+  end
+
+end;
+
+procedure TTProduto.edPesquisaProdutoKeyPress(Sender: TObject; var Key: Char);
+
+  function Filtro: string;
+  begin
+    if TProduto.Tag = 0 then
+    begin
+      TProduto.Tag := 1;
+      Result := ' WHERE ';
+    end
+    else
+      Result := ' AND ';
+  end;
+
+begin
+  TProduto.Tag := 0;
+  if (Key = #13) and not Empty(edPesquisaProduto.Text) then
+  begin
+    with qProduto do
+    begin
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT COD_PRODUTO, DESCRICAO, PRECO, DATA_VALIDADE, ATIVO');
+      SQL.Add('FROM PRODUTO');
+      if edPesquisaProduto.Text <> '*' then
+      begin
+        if ColunaPesquisa = 'COD_PRODUTO' then
+          SQL.Add(Filtro + ' COD_PRODUTO = ' + StringTextSql(edPesquisaProduto.Text));
+
+        if ColunaPesquisa = 'DESCRICAO' then
+          SQL.Add(Filtro + ' DESCRICAO LIKE ''%' + edPesquisaProduto.Text + '%''');
+
+        lblPesquisa.Caption := 'Digite uma Descrição ou * para todos e Tecle Enter';
+        if ColunaPesquisa = 'PRECO' then
+          SQL.Add(Filtro + ' PRECO LIKE ''%' + edPesquisaProduto.Text + '%''');
+
+        if ColunaPesquisa = 'DATA_VALIDADE' then
+          SQL.Add(Filtro + ' DATA_VALIDADE LIKE ''%' + edPesquisaProduto.Text + '%''');
+      end;
+      case rgFiltroProduto.ItemIndex of
+        0:
+          SQL.Add(Filtro + ' ATIVO = 1');
+        1:
+          SQL.Add(Filtro + ' ATIVO = 0');
+      end;
+      Open;
+      lblNumRegistroP.Caption := IntToStr(qProduto.RecordCount);
+    end;
+  end;
+end;
+
+procedure TTProduto.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  case Key of
+    VK_ESCAPE:
+      begin
+        if (btnFechar.Visible) and (btnFechar.Enabled) then
+          btnFechar.Click;
+      end;
+    VK_F2:
+      begin
+        if (btnInserir.Visible) and (btnInserir.Enabled) then
+          btnInserir.Click;
+      end;
+    VK_F3:
+      begin
+        if (btnConsultar.Visible) and (btnConsultar.Enabled) then
+          btnConsultar.Click;
+      end;
+    VK_F4:
+      begin
+        if (btnEditar.Visible) and (btnEditar.Enabled) then
+          btnEditar.Click;
+      end;
+    VK_F6:
+      begin
+        if (btnLimpar.Visible) and (btnLimpar.Enabled) then
+          btnLimpar.Click;
+      end;
+    VK_F8:
+      begin
+        if (btnExcluir.visible) and (btnExcluir.Enabled) then
+          btnExcluir.Click;
+      end;
+  end;
+end;
+
+procedure TTProduto.FormShow(Sender: TObject);
+begin
+  ColunaPesquisa := 'DESCRICAO';
+  if edPesquisaProduto.CanFocus then
+    edPesquisaProduto.SetFocus;
+end;
+
+{procedure TTProduto.FiltroProdAtv;
+begin
+  with qProduto do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT COD_PRODUTO, DESCRICAO, PRECO, DATA_VALIDADE, ATIVO');
+    SQL.Add('FROM PRODUTO');
+    SQL.Add('WHERE ATIVO = 1');
+    if edPesquisaProduto.Text <> '*' then
+    begin
+      if ColunaPesquisa = 'COD_PRODUTO' then
+        SQL.Add(' AND COD_PRODUTO = ' + StringTextSql(edPesquisaProduto.Text));
+
+      if ColunaPesquisa = 'DESCRICAO' then
+        SQL.Add(' AND DESCRICAO LIKE ''%' + edPesquisaProduto.Text + '%''');
+
+        lblPesquisa.Caption := 'Digite uma Descrição ou * para todos e Tecle Enter';
+      if ColunaPesquisa = 'PRECO' then
+        SQL.Add(' AND PRECO LIKE ''%' + edPesquisaProduto.Text + '%''');
+
+      if ColunaPesquisa = 'DATA_VALIDADE' then
+        SQL.Add(' AND DATA_VALIDADE LIKE ''%' + edPesquisaProduto.Text + '%''');
+
+    end;
+    Open;
+  end;
+end;
+
+procedure TTProduto.FiltroProdIna;
+begin
+  with qProduto do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT COD_PRODUTO, DESCRICAO, PRECO, DATA_VALIDADE, ATIVO');
+    SQL.Add('FROM PRODUTO');
+    SQL.Add('WHERE ATIVO = 0');
+    if edPesquisaProduto.Text <> '*' then
+    begin
+      if ColunaPesquisa = 'COD_PRODUTO' then
+        SQL.Add(' AND COD_PRODUTO = ' + StringTextSql(edPesquisaProduto.Text));
+
+      if ColunaPesquisa = 'DESCRICAO' then
+        SQL.Add(' AND DESCRICAO LIKE ''%' + edPesquisaProduto.Text + '%''');
+
+      lblPesquisa.Caption := 'Digite uma Descrição ou * para todos e Tecle Enter';
+      if ColunaPesquisa = 'PRECO' then
+        SQL.Add(' AND PRECO LIKE ''%' + edPesquisaProduto.Text + '%''');
+
+      if ColunaPesquisa = 'DATA_VALIDADE' then
+        SQL.Add(' AND DATA_VALIDADE LIKE ''%' + edPesquisaProduto.Text + '%''');
+
+    end;
+    Open;
+  end;
+end;
+
+procedure TTProduto.filtroProdTodos;
+begin
+  with qProduto do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT COD_PRODUTO, DESCRICAO, PRECO, DATA_VALIDADE, ATIVO');
+    SQL.Add('FROM PRODUTO');
+    if edPesquisaProduto.Text <> '*' then
+    begin
+      if ColunaPesquisa = 'COD_PRODUTO' then
+        SQL.Add('WHERE COD_PRODUTO = ' + StringTextSql(edPesquisaProduto.Text));
+      if ColunaPesquisa = 'DESCRICAO' then
+        SQL.Add('WHERE DESCRICAO LIKE ''%' + edPesquisaProduto.Text + '%''');
+      lblPesquisa.Caption := 'Digite uma Descrição ou * para todos e Tecle Enter';
+      if ColunaPesquisa = 'PRECO' then
+        SQL.Add('WHERE PRECO LIKE ''%' + edPesquisaProduto.Text + '%''');
+      if ColunaPesquisa = 'DATA_VALIDADE' then
+        SQL.Add('WHERE DATA_VALIDADE LIKE ''%' + edPesquisaProduto.Text + '%''');
+    end;
+    Open;
+  end;
+end;}
+
+procedure TTProduto.rgFiltroProdutoClick(Sender: TObject);
+begin
+  qProduto.Close;
+  edPesquisaProduto.Clear;
+  lblNumRegistroP.Caption := '0';
+  if edPesquisaProduto.CanFocus then
+    edPesquisaProduto.SetFocus;
+end;
+
+end.
+

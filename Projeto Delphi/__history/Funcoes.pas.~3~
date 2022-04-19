@@ -1,0 +1,64 @@
+unit Funcoes;
+
+interface
+
+uses SysUtils, Dialogs, Controls, StdCtrls;
+
+function DataSQL(Data : TDateTime ) : String;
+
+function DataSQLT(Data: TDateTime ): String;
+
+function Empty( Dados: string ): boolean;
+
+function EnviaMensagem(Mensagem, Tipo: String; DlgType: TMsgDlgType; DlgButtonsType: TMsgDlgButtons): TModalResult;
+
+implementation
+
+
+
+function DataSQLT(Data: TDateTime ): String;
+begin
+  Result := QuotedStr(FormatDateTime('yyyy-mm-dd hh:mm:ss', Data));// + ' '+TimeToStr(Data) );
+end;
+
+function DataSQL(Data : TDateTime ) : String;
+begin
+  Result := QuotedStr(FormatDateTime('yyyy-mm-dd', Data) + ' 00:00:00');
+end;
+
+function Empty( Dados: string ): boolean;
+begin
+  if Length( Trim( Dados ) ) = 0 then
+    Empty := True
+  else
+    Empty := False;
+end;
+
+function EnviaMensagem(Mensagem, Tipo: String; DlgType: TMsgDlgType; DlgButtonsType: TMsgDlgButtons): TModalResult;
+var
+  i: Integer;
+begin
+  with CreateMessageDialog(Mensagem, DlgType, DlgButtonsType) do
+  try
+    for i:= 0 to ComponentCount-1 do
+     if Components[i] is TButton then
+    begin
+      with TButton(Components[i]) do
+      case ModalResult of
+        mrOk:     Caption:= 'Ok';
+        mrCancel: Caption:= 'Cancelar';
+        mrAbort:  Caption:= 'Abortar';
+        mrRetry:  Caption:= 'Repetir';
+        mrIgnore: Caption:= 'Ignorar';
+        mrYes:    Caption:= 'Sim';
+        mrNo:     Caption:= 'Não';
+      end;
+    end;
+    Caption:= Tipo;
+    Result:= ShowModal;
+  finally
+    Free;
+  end;
+end;
+
+end.
